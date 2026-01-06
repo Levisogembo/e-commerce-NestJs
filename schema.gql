@@ -109,7 +109,7 @@ type User {
   password: String!
   isVerified: Boolean!
   isActive: Boolean!
-  createdAt: Boolean!
+  createdAt: DateTime!
   role: [Role!]!
   address: [Address!]!
   orders: [Orders!]!
@@ -117,5 +117,29 @@ type User {
 }
 
 type Query {
-  login: String!
+  hello: String!
+}
+
+type Mutation {
+  login(loginInput: localInput!): String!
+  createUser(userInput: createUserInput!): User!
+  createNewRole(roleInput: createRoleInput!): Role!
+}
+
+input localInput {
+  email: String!
+  password: String!
+}
+
+input createUserInput {
+  firstName: String!
+  lastName: String!
+  phoneNumber: String!
+  email: String!
+  password: String
+  role: String!
+}
+
+input createRoleInput {
+  name: String!
 }

@@ -1,4 +1,4 @@
-import { Column, Entity, JoinColumn, ManyToMany, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, JoinColumn, JoinTable, ManyToMany, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { Role } from "./Role";
 import { Address } from "./Addresses";
 import { Orders } from "./Order";
@@ -33,20 +33,20 @@ export class User{
     password?: string
 
     @Field(()=>Boolean)
-    @Column()
+    @Column({default:false})
     isVerified: boolean
 
     @Field(()=>Boolean)
     @Column({default:true})
     isActive: boolean
 
-    @Field(()=>Boolean)
+    @Field()
     @Column()
     createdAt: Date
 
     @Field(()=>[Role])
     @ManyToMany(()=>Role,(role)=>role.user)
-    @JoinColumn()
+    @JoinTable()
     role: Role[]
 
     @Field(()=>[Address])
