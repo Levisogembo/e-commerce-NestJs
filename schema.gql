@@ -1,0 +1,121 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type Role {
+  roleId: String!
+  name: String!
+  user: [User!]!
+}
+
+type Address {
+  addressId: String!
+  addressLine1: String!
+  addressLine2: String!
+  city: String!
+  state: String!
+  postalCode: String!
+  country: String!
+  user: User!
+}
+
+type subCategory {
+  subCategoryId: String!
+  name: String!
+  description: String!
+  category: Category!
+  Product: [Product!]!
+}
+
+type Category {
+  categoryId: String!
+  name: String!
+  description: String!
+  subCategories: [subCategory!]!
+  Product: [Product!]!
+}
+
+type Images {
+  imageId: String!
+  fileName: String!
+  uploadedAt: DateTime!
+  mimeType: String!
+  fileSize: String!
+  filepath: String!
+  s3FileUrl: String!
+  s3Key: String!
+  Product: Product!
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type Product {
+  productId: String!
+  name: String!
+  description: String!
+  brand: String!
+  price: Int!
+  quantity: Int!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  category: Category!
+  subCategory: subCategory!
+  OrderItems: [orderItems!]!
+  images: [Images!]!
+}
+
+type orderItems {
+  orderItemId: String!
+  quantity: Int!
+  unitPrice: Int!
+  subTotal: Int!
+  Order: Orders!
+  Product: Product!
+}
+
+type Payments {
+  paymentId: String!
+  transactionId: String!
+  amount: Int!
+  currency: String!
+  mpesaNumber: String!
+  stripeId: String!
+  paidAt: DateTime!
+  user: User!
+  order: Orders!
+}
+
+type Orders {
+  orderId: String!
+  total: Float!
+  status: String!
+  billingAddress: String!
+  paymentMethod: String!
+  createdAt: DateTime!
+  OrderItems: [orderItems!]!
+  user: User!
+  payments: [Payments!]!
+}
+
+type User {
+  userId: String!
+  firstName: String!
+  lastName: String!
+  phoneNumber: String!
+  email: String!
+  password: String!
+  isVerified: Boolean!
+  isActive: Boolean!
+  createdAt: Boolean!
+  role: [Role!]!
+  address: [Address!]!
+  orders: [Orders!]!
+  payments: [Payments!]!
+}
+
+type Query {
+  login: String!
+}
