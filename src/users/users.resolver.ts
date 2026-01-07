@@ -2,7 +2,11 @@ import { Args, Mutation, Resolver } from '@nestjs/graphql';
 import { UsersService } from './users.service';
 import { User } from 'src/typeorm/entities/User';
 import { createUserInput } from './dtos/createUser.input';
-import { HttpException, HttpStatus, UsePipes, ValidationPipe } from '@nestjs/common';
+import { HttpException, HttpStatus, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
+import { JwtGqlGuard } from 'src/auth/guards/jwt.guard';
+import { ROLES } from 'src/auth/decorators/roles.decorator';
+import { Roles } from 'src/roles/dtos/enums/roles.enum';
+import { RolesGuard } from 'src/auth/guards/roles.guard';
 
 @Resolver(()=>User)
 export class UsersResolver {
@@ -18,6 +22,8 @@ export class UsersResolver {
     }
 
     @Mutation(()=>User)
+    @ROLES(Roles.ADMIN)
+    @UseGuards(JwtGqlGuard,RolesGuard)
     @UsePipes(new ValidationPipe)
     async createAdmin(@Args('adminInput') adminInput: createUserInput){
         const pass = adminInput.password

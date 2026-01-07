@@ -9,6 +9,7 @@ import { User } from 'src/typeorm/entities/User';
 import { LocalStrategy } from './strategies/localStrategy';
 import { AuthController } from './auth.controller';
 import { GoogleStrategy } from './strategies/googleStrategy';
+import { JwtStrategy } from './strategies/jwtStrategy';
 
 @Module({
   imports: [
@@ -23,7 +24,7 @@ import { GoogleStrategy } from './strategies/googleStrategy';
       })
     })
   ],
-  providers: [AuthResolver, AuthService, LocalStrategy, GoogleStrategy],
+  providers: [AuthResolver, AuthService, LocalStrategy, GoogleStrategy, JwtStrategy],
   controllers: [AuthController]
 })
 export class AuthModule {}

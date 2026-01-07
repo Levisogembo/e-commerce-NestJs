@@ -1,6 +1,6 @@
 import { Controller, Get, Query, Req, Res, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { GoogleAuthGuard } from './guards/googleGuard';
+import { GoogleAuthGuard } from './guards/google.guard';
 import { Request, Response } from 'express';
 
 @Controller('auth')
