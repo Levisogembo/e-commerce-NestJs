@@ -7,6 +7,8 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from 'src/typeorm/entities/User';
 import { LocalStrategy } from './strategies/localStrategy';
+import { AuthController } from './auth.controller';
+import { GoogleStrategy } from './strategies/googleStrategy';
 
 @Module({
   imports: [
@@ -21,6 +23,7 @@ import { LocalStrategy } from './strategies/localStrategy';
       })
     })
   ],
-  providers: [AuthResolver, AuthService, LocalStrategy]
+  providers: [AuthResolver, AuthService, LocalStrategy, GoogleStrategy],
+  controllers: [AuthController]
 })
 export class AuthModule {}

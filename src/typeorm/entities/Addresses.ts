@@ -11,6 +11,10 @@ export class Address{
 
     @Field()
     @Column()
+    phoneNumber: string
+
+    @Field()
+    @Column()
     addressLine1: string
 
     @Field()

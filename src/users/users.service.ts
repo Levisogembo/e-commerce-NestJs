@@ -11,17 +11,15 @@ import { Repository } from 'typeorm';
 import { createUserInput } from './dtos/createUser.input';
 import { use } from 'passport';
 import * as argon from 'argon2'
+import { Roles } from 'src/roles/dtos/enums/roles.enum';
 
 @Injectable()
 export class UsersService {
   constructor(
-    @InjectRepository(User) private userRepository: Repository<User>,
-    @InjectRepository(Role) private rolesRepository: Repository<Role>,
+    @InjectRepository(User) private userRepository: Repository<User>
   ) {}
 
-  async createUser({ role, email, password, ...userData }: createUserInput) {
-    const foundRole = await this.rolesRepository.findOne({ where: { roleId: role }});
-    if (!foundRole) throw new NotFoundException();
+  async createUser({email, password, ...userData }: createUserInput) {
     const foundEmail = await this.userRepository.findOne({ where: { email } });
     if (foundEmail) throw new HttpException('Email already exists', HttpStatus.CONFLICT);
     let hashedPassword: string | undefined;
@@ -33,7 +31,24 @@ export class UsersService {
         ...userData,
         email,
         password: hashedPassword,
-        role: [foundRole],
+        createdAt: new Date()
+    });
+    return await this.userRepository.save(newUser)
+  }
+
+  async createAdmin({email, password, ...userData }: createUserInput) {
+    const foundEmail = await this.userRepository.findOne({ where: { email } });
+    if (foundEmail) throw new HttpException('Email already exists', HttpStatus.CONFLICT);
+    let hashedPassword: string | undefined;
+    if(password) {
+      hashedPassword = await argon.hash(password);
+    }
+     
+    const newUser = await this.userRepository.create({
+        ...userData,
+        email,
+        role: Roles.ADMIN,
+        password: hashedPassword,
         createdAt: new Date()
     });
     return await this.userRepository.save(newUser)
