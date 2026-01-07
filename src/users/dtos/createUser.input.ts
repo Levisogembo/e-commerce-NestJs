@@ -24,12 +24,12 @@ export class createUserInput {
   @IsString()
   lastName: string;
 
-  @Field()
-  @IsNotEmpty()
-  @IsString()
-  @MaxLength(10)
-  @MinLength(10)
-  phoneNumber: string;
+  // @Field()
+  // @IsNotEmpty()
+  // @IsString()
+  // @MaxLength(10)
+  // @MinLength(10)
+  // phoneNumber: string;
 
   @Field()
   @IsNotEmpty()
@@ -46,8 +46,14 @@ export class createUserInput {
   })
   password?: string
 
-  @Field()
-  @IsNotEmpty()
+  @Field(()=>String,{nullable:true})
+  @IsOptional()
   @IsString()
-  role: string
+  @MinLength(8)
+  @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/, {
+    message:
+      'Password must contain at least 1 uppercase letter, 1 lowercase letter, 1 number, 1 special character, and be at least 8 characters long',
+  })
+  confirmPassword?: string
+
 }

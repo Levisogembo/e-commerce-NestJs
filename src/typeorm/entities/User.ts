@@ -4,6 +4,7 @@ import { Address } from "./Addresses";
 import { Orders } from "./Order";
 import { Payments } from "./Payments";
 import { Field, ObjectType } from "@nestjs/graphql";
+import { Roles } from "src/roles/dtos/enums/roles.enum";
 
 @ObjectType()
 @Entity({name:'users'})
@@ -19,10 +20,6 @@ export class User{
     @Field()
     @Column()
     lastName: string
-
-    @Field()
-    @Column()
-    phoneNumber: string
 
     @Field()
     @Column({unique:true})
@@ -44,10 +41,9 @@ export class User{
     @Column()
     createdAt: Date
 
-    @Field(()=>[Role])
-    @ManyToMany(()=>Role,(role)=>role.user)
-    @JoinTable()
-    role: Role[]
+    @Field(()=>Roles)
+    @Column({default:Roles.USER})
+    role: Roles
 
     @Field(()=>[Address])
     @OneToMany(()=>Address,(address)=>address.user)

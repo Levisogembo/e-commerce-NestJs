@@ -6,7 +6,7 @@ import { User } from 'src/typeorm/entities/User';
 import { Role } from 'src/typeorm/entities/Role';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User,Role])],
+  imports: [TypeOrmModule.forFeature([User])],
   providers: [UsersService, UsersResolver]
 })
 export class UsersModule {}

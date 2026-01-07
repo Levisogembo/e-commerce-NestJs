@@ -2,7 +2,7 @@ import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { User } from 'src/typeorm/entities/User';
 import { localInput } from './dtos/localLogin.input';
 import { UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
-import { GqlLocalGuard } from './guards/localGuard';
+import { GqlLocalGuard } from './guards/local.guard';
 import { CurrentUser} from './decorators/userToken.decorator';
 
 @Resolver(() => User)

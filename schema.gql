@@ -2,14 +2,9 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
-type Role {
-  roleId: String!
-  name: String!
-  user: [User!]!
-}
-
 type Address {
   addressId: String!
+  phoneNumber: String!
   addressLine1: String!
   addressLine2: String!
   city: String!
@@ -104,16 +99,26 @@ type User {
   userId: String!
   firstName: String!
   lastName: String!
-  phoneNumber: String!
   email: String!
   password: String!
   isVerified: Boolean!
   isActive: Boolean!
   createdAt: DateTime!
-  role: [Role!]!
+  role: Roles!
   address: [Address!]!
   orders: [Orders!]!
   payments: [Payments!]!
+}
+
+enum Roles {
+  ADMIN
+  USER
+}
+
+type Role {
+  roleId: String!
+  name: String!
+  user: [User!]!
 }
 
 type Query {
@@ -123,6 +128,7 @@ type Query {
 type Mutation {
   login(loginInput: localInput!): String!
   createUser(userInput: createUserInput!): User!
+  createAdmin(adminInput: createUserInput!): User!
   createNewRole(roleInput: createRoleInput!): Role!
 }
 
@@ -134,10 +140,9 @@ input localInput {
 input createUserInput {
   firstName: String!
   lastName: String!
-  phoneNumber: String!
   email: String!
   password: String
-  role: String!
+  confirmPassword: String
 }
 
 input createRoleInput {
