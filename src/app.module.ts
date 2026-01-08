@@ -18,6 +18,7 @@ import { orderItems } from './typeorm/entities/orderItems';
 import { Payments } from './typeorm/entities/Payments';
 import { Product } from './typeorm/entities/Product';
 import { subCategory } from './typeorm/entities/subCategory';
+import { EmailsModule } from './emails/emails.module';
 
 @Module({
   imports: [
@@ -46,7 +47,8 @@ import { subCategory } from './typeorm/entities/subCategory';
     }),
     AuthModule,
     UsersModule,
-    RolesModule
+    RolesModule,
+    EmailsModule
   ],
   controllers: [AppController],
   providers: [AppService],
