@@ -30,6 +30,13 @@ export class AuthResolver {
     return await this.authService.changePassword(userId,currentPassword,newPassword)
   }
 
+  @Query(()=>String)
+  @UseGuards(JwtGqlGuard)
+  async sendVerificationEmail(@CurrentUser() req: jwtPayloadDto){
+    const userId = req.userId
+    return await this.authService.sendEmailVerification(userId)
+  }
+
   @Query(() => String)
   hello() {
     return 'Hello GraphQL';

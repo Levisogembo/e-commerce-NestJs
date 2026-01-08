@@ -122,6 +122,7 @@ type Role {
 }
 
 type Query {
+  sendVerificationEmail: String!
   hello: String!
 }
 
