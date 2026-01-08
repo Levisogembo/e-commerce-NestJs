@@ -127,6 +127,7 @@ type Query {
 
 type Mutation {
   login(loginInput: localInput!): String!
+  changePassword(passwordInput: changePasswordInput!): String!
   createUser(userInput: createUserInput!): User!
   createAdmin(adminInput: createUserInput!): User!
   createNewRole(roleInput: createRoleInput!): Role!
@@ -135,6 +136,12 @@ type Mutation {
 input localInput {
   email: String!
   password: String!
+}
+
+input changePasswordInput {
+  currentPassword: String!
+  newPassword: String!
+  confirmedPassword: String!
 }
 
 input createUserInput {
