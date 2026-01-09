@@ -115,6 +115,12 @@ enum Roles {
   USER
 }
 
+type logoutResponseInput {
+  success: Boolean!
+  message: String
+  timeStamp: String
+}
+
 type Role {
   roleId: String!
   name: String!
@@ -129,6 +135,7 @@ type Query {
 type Mutation {
   login(loginInput: localInput!): String!
   changePassword(passwordInput: changePasswordInput!): String!
+  logout: logoutResponseInput!
   createUser(userInput: createUserInput!): User!
   createAdmin(adminInput: createUserInput!): User!
   createNewRole(roleInput: createRoleInput!): Role!
