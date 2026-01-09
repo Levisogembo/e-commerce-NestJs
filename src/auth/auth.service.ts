@@ -12,12 +12,15 @@ import * as argon from 'argon2';
 import { JwtService } from '@nestjs/jwt';
 import { createGoogleUser } from './dtos/createGoogleUser.input';
 import { EmailsService } from 'src/emails/emails.service';
+import { RedisService } from 'src/redis/redis.service';
 
 @Injectable()
 export class AuthService {
   constructor(
     @InjectRepository(User) private userRepository: Repository<User>,
-    private jwtService: JwtService, private emailsService: EmailsService
+    private jwtService: JwtService, 
+    private emailsService: EmailsService, 
+    private redisService: RedisService
   ) {}
 
   async validateLocal(email: string, password: string) {
@@ -32,8 +35,13 @@ export class AuthService {
         'Credentials do not match',
         HttpStatus.UNAUTHORIZED,
       );
-    const payload = { userId: foundUser.userId, email, role: foundUser.role };
-    return await this.generateJwtToken(payload);
+    const userId = foundUser.userId
+    const payload = { userId , email, role: foundUser.role };
+    const generatedToken = await this.generateJwtToken(payload);
+    const ttl = 60 * 60 //3600 seconds, 1h
+    await this.redisService.storeToken(generatedToken,userId, ttl)
+    console.log('storing token in redis');
+    return generatedToken
   }
 
   async validateGoogle(email, profile: createGoogleUser) {
@@ -41,8 +49,13 @@ export class AuthService {
     if (!foundUser) {
       return await this.createGoogleUser(email, profile);
     }
-    const payload = { userId: foundUser.userId, email, role: foundUser.role };
-    return await this.generateJwtToken(payload);
+    const userId = foundUser.userId
+    const payload = { userId, email, role: foundUser.role };
+    const generatedToken = await this.generateJwtToken(payload);
+    const ttl = 60 * 60 //3600 seconds, 1h
+    await this.redisService.storeToken(generatedToken,userId, ttl)
+    console.log('storing token in redis');
+    return generatedToken
   }
 
   async generateJwtToken(payload) {
@@ -63,10 +76,15 @@ export class AuthService {
       createdAt: new Date(),
     });
     const savedUser = await this.userRepository.save(googleUser);
-    const payload = { userId: savedUser.userId, email, role: savedUser.role };
+    const userId = savedUser.userId
+    const payload = { userId, email, role: savedUser.role };
     //send welcome email to user
     await this.emailsService.sendWelcomeMessage(email,profile.given_name)
-    return await this.generateJwtToken(payload);
+    const ttl = 60 * 60
+    const generatedToken = await this.generateJwtToken(payload);
+    await this.redisService.storeToken(generatedToken,userId, ttl)
+    console.log('storing token in redis');
+    return generatedToken
   }
 
   async changePassword(userId:string, currentPassword:string, newPassword:string) {

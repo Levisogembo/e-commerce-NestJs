@@ -90,7 +90,7 @@ export class EmailsService {
       return { status: 'err', message: error.message };
     }
   }
-
+  
   async sendPasswordReset(to:string,resetUrl:string,user:string){
     try {
       const currentYear = new Date().getFullYear();

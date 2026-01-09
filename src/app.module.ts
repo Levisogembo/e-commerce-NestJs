@@ -19,6 +19,7 @@ import { Payments } from './typeorm/entities/Payments';
 import { Product } from './typeorm/entities/Product';
 import { subCategory } from './typeorm/entities/subCategory';
 import { EmailsModule } from './emails/emails.module';
+import { RedisModule } from './redis/redis.module';
 
 @Module({
   imports: [
@@ -48,7 +49,8 @@ import { EmailsModule } from './emails/emails.module';
     AuthModule,
     UsersModule,
     RolesModule,
-    EmailsModule
+    EmailsModule,
+    RedisModule
   ],
   controllers: [AppController],
   providers: [AppService],
