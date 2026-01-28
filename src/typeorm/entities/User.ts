@@ -1,4 +1,4 @@
-import { Column, Entity, JoinColumn, JoinTable, ManyToMany, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, JoinColumn, JoinTable, ManyToMany, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 import { Role } from "./Role";
 import { Address } from "./Addresses";
 import { Orders } from "./Order";
@@ -45,9 +45,14 @@ export class User{
     @Column({default:Roles.USER})
     role: Roles
 
-    @Field(()=>[Address])
-    @OneToMany(()=>Address,(address)=>address.user)
-    address: Address []
+    @Field(()=>Address)
+    @OneToOne(()=>Address,(address)=>address.user,{
+        cascade: true,
+        onDelete: 'CASCADE',
+        nullable: true
+    })
+    @JoinColumn()
+    address?: Address 
 
     @Field(()=>[Orders])
     @OneToMany(()=>Orders,(order)=>order.user)

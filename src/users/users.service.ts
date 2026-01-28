@@ -59,4 +59,14 @@ export class UsersService {
     await this.emailsService.sendWelcomeMessage(email,userData.firstName)
     return savedUser
   }
+
+  async deleteUser(userId: string){
+    const user = await this.userRepository.findOne({
+      where:{userId},
+      relations: ['address']
+    })
+    if(!user) throw new NotFoundException()
+    await this.userRepository.remove(user)
+    return "User Deleted successfully"
+  }
 }

@@ -1,4 +1,4 @@
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 import { User } from "./User";
 import { Field, ObjectType } from "@nestjs/graphql";
 
@@ -17,9 +17,9 @@ export class Address{
     @Column()
     addressLine1: string
 
-    @Field()
+    @Field(()=>String,{nullable:true})
     @Column({nullable:true})
-    addressLine2: string
+    addressLine2?: string
 
     @Field()
     @Column()
@@ -38,7 +38,6 @@ export class Address{
     country: string
 
     @Field(()=>User)
-    @ManyToOne(()=>User,(user)=>user.address)
-    @JoinColumn()
+    @OneToOne(()=>User,(user)=>user.address)
     user: User
 }

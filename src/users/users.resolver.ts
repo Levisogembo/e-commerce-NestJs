@@ -7,6 +7,8 @@ import { JwtGqlGuard } from 'src/auth/guards/jwt.guard';
 import { ROLES } from 'src/auth/decorators/roles.decorator';
 import { Roles } from 'src/roles/dtos/enums/roles.enum';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
+import { CurrentUser } from 'src/auth/decorators/userToken.decorator';
+import { jwtPayloadDto } from 'src/auth/dtos/jwtPayload.dto';
 
 @Resolver(()=>User)
 export class UsersResolver {
@@ -30,5 +32,11 @@ export class UsersResolver {
         const confirmPass = adminInput.confirmPassword
         if(pass !== confirmPass) throw new HttpException('Passwords do not match',HttpStatus.CONFLICT)
         return await this.userService.createAdmin(adminInput)
+    }
+
+    @UseGuards(JwtGqlGuard)
+    @Mutation(()=>String)
+    async deleteUser(@CurrentUser() userToken: jwtPayloadDto){
+        return await this.userService.deleteUser(userToken.userId)
     }
 }

@@ -6,7 +6,7 @@ type Address {
   addressId: String!
   phoneNumber: String!
   addressLine1: String!
-  addressLine2: String!
+  addressLine2: String
   city: String!
   state: String!
   postalCode: String!
@@ -105,7 +105,7 @@ type User {
   isActive: Boolean!
   createdAt: DateTime!
   role: Roles!
-  address: [Address!]!
+  address: Address!
   orders: [Orders!]!
   payments: [Payments!]!
 }
@@ -130,6 +130,7 @@ type Role {
 type Query {
   sendVerificationEmail: String!
   hello: String!
+  getAddressData: Address!
 }
 
 type Mutation {
@@ -138,6 +139,9 @@ type Mutation {
   logout: logoutResponseInput!
   createUser(userInput: createUserInput!): User!
   createAdmin(adminInput: createUserInput!): User!
+  deleteUser: String!
+  createAddress(addressPayload: createAddressInput!): Address!
+  updateAddress(uploadPayload: updateUserAddressInput!): Address!
   createNewRole(roleInput: createRoleInput!): Role!
 }
 
@@ -158,6 +162,26 @@ input createUserInput {
   email: String!
   password: String
   confirmPassword: String
+}
+
+input createAddressInput {
+  phoneNumber: String!
+  addressLine1: String!
+  addressLine2: String
+  city: String!
+  state: String!
+  postalCode: String!
+  country: String!
+}
+
+input updateUserAddressInput {
+  phoneNumber: String
+  addressLine1: String
+  addressLine2: String
+  city: String
+  state: String
+  postalCode: String
+  country: String
 }
 
 input createRoleInput {
