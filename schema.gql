@@ -100,12 +100,11 @@ type User {
   firstName: String!
   lastName: String!
   email: String!
-  password: String!
   isVerified: Boolean!
   isActive: Boolean!
   createdAt: DateTime!
   role: Roles!
-  address: Address!
+  address: Address
   orders: [Orders!]!
   payments: [Payments!]!
 }
@@ -130,6 +129,8 @@ type Role {
 type Query {
   sendVerificationEmail: String!
   hello: String!
+  getUser(userId: String!): User!
+  getAllUser(page: Int!, limit: Int!): [User!]!
   getAddressData: Address!
 }
 
