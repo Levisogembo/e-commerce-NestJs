@@ -38,6 +38,7 @@ export class Address{
     country: string
 
     @Field(()=>User)
-    @OneToOne(()=>User,(user)=>user.address)
+    @OneToOne(()=>User,(user)=>user.address,{onDelete:'CASCADE'})
+    @JoinColumn()
     user: User
 }

@@ -3,7 +3,7 @@ import { Role } from "./Role";
 import { Address } from "./Addresses";
 import { Orders } from "./Order";
 import { Payments } from "./Payments";
-import { Field, ObjectType } from "@nestjs/graphql";
+import { Field, HideField, ObjectType } from "@nestjs/graphql";
 import { Roles } from "src/roles/dtos/enums/roles.enum";
 
 @ObjectType()
@@ -25,7 +25,7 @@ export class User{
     @Column({unique:true})
     email: string
 
-    @Field()
+    @HideField()
     @Column({nullable:true})
     password?: string
 
@@ -45,13 +45,8 @@ export class User{
     @Column({default:Roles.USER})
     role: Roles
 
-    @Field(()=>Address)
-    @OneToOne(()=>Address,(address)=>address.user,{
-        cascade: true,
-        onDelete: 'CASCADE',
-        nullable: true
-    })
-    @JoinColumn()
+    @Field(()=>Address,{nullable:true})
+    @OneToOne(()=>Address,(address)=>address.user)
     address?: Address 
 
     @Field(()=>[Orders])
