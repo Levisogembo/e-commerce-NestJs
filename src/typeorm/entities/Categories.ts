@@ -11,7 +11,7 @@ export class Category {
     categoryId: string
 
     @Field()
-    @Column()
+    @Column({unique: true})
     name: string
 
     @Field()

@@ -144,6 +144,8 @@ type Mutation {
   createAddress(addressPayload: createAddressInput!): Address!
   updateAddress(uploadPayload: updateUserAddressInput!): Address!
   createNewRole(roleInput: createRoleInput!): Role!
+  createCategory(categoryInput: createCategoryInput!): Category!
+  updateCategory(categoryId: String!, updateCategoryInput: updateCategoryInput!): Category!
 }
 
 input localInput {
@@ -187,4 +189,14 @@ input updateUserAddressInput {
 
 input createRoleInput {
   name: String!
+}
+
+input createCategoryInput {
+  name: String!
+  description: String!
+}
+
+input updateCategoryInput {
+  name: String
+  description: String
 }

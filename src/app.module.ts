@@ -20,6 +20,7 @@ import { Product } from './typeorm/entities/Product';
 import { subCategory } from './typeorm/entities/subCategory';
 import { EmailsModule } from './emails/emails.module';
 import { RedisModule } from './redis/redis.module';
+import { InventoryModule } from './inventory/inventory.module';
 
 @Module({
   imports: [
@@ -50,7 +51,8 @@ import { RedisModule } from './redis/redis.module';
     UsersModule,
     RolesModule,
     EmailsModule,
-    RedisModule
+    RedisModule,
+    InventoryModule
   ],
   controllers: [AppController],
   providers: [AppService],
