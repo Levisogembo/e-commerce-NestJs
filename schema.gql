@@ -132,6 +132,7 @@ type Query {
   getUser(userId: String!): User!
   getAllUser(page: Int!, limit: Int!): [User!]!
   getAddressData: Address!
+  getCategory(categoryId: String!): Category!
 }
 
 type Mutation {
