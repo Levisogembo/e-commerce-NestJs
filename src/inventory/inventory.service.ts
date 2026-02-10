@@ -5,6 +5,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { createCategoryInput } from './dtos/createCategory.input';
 import { updateCategoryInput } from './dtos/updateCategory.input';
+import { log } from 'util';
 
 @Injectable()
 export class InventoryService {
@@ -18,15 +19,19 @@ export class InventoryService {
     }
 
     async updateCategory(categoryId: string, payload: updateCategoryInput) {
+        //console.log(payload);      
         const existingCategory = await this.categoryRepository.findOne({ where: { categoryId } })
-        if (existingCategory) throw new NotFoundException('Category not found')
-        if (payload.name) {
-            const foundName = await this.categoryRepository.findOne({ where: { name: payload.name } })
-            if (foundName) throw new ConflictException('Category name already exists')
-            await this.categoryRepository.update({categoryId}, {name:payload.name, description: payload.description})
-        }
+        if (!existingCategory) throw new NotFoundException('Category not found')
+        if (payload.name === existingCategory.name) throw new ConflictException('Category name already exists')
+
         await this.categoryRepository.update(categoryId, payload)
-        return await this.categoryRepository.findOne({where:{categoryId}})
+        return await this.categoryRepository.findOne({ where: { categoryId } })
         //return "Category Updated successfully"
+    }
+
+    async getCategory(categoryId: string) {
+        const category = await this.categoryRepository.findOne({ where: { categoryId } })
+        if (!category) throw new NotFoundException('Category not found')
+        return category
     }
 }
