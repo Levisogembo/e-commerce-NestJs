@@ -133,6 +133,9 @@ type Query {
   getAllUser(page: Int!, limit: Int!): [User!]!
   getAddressData: Address!
   getCategory(categoryId: String!): Category!
+  getOneSubCategory(subCategoryId: String!): subCategory!
+  getOneProduct(productId: String!): Product!
+  getManyProducts(page: Float!, limt: Float!): [Product!]!
 }
 
 type Mutation {
@@ -147,6 +150,11 @@ type Mutation {
   createNewRole(roleInput: createRoleInput!): Role!
   createCategory(categoryInput: createCategoryInput!): Category!
   updateCategory(categoryId: String!, updateCategoryInput: updateCategoryInput!): Category!
+  createSubCategory(subCategoryPayload: createSubCategoryInput!): subCategory!
+  updateSubCategory(subCategoryId: String!, updateSubCategoryPayload: updateSubCategoryInput!): subCategory!
+  deleteSubCategory(subCategoryId: String!): String!
+  createProduct(productPayload: createProductInput!): Product!
+  deleteProduct(productId: String!): String!
 }
 
 input localInput {
@@ -200,4 +208,26 @@ input createCategoryInput {
 input updateCategoryInput {
   name: String
   description: String
+}
+
+input createSubCategoryInput {
+  name: String!
+  description: String!
+  category: String!
+}
+
+input updateSubCategoryInput {
+  name: String
+  description: String
+  category: String
+}
+
+input createProductInput {
+  name: String!
+  description: String!
+  brand: String!
+  price: Int!
+  quantity: Int!
+  category: String!
+  subCategory: String!
 }

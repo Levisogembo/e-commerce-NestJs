@@ -11,7 +11,7 @@ export class subCategory {
     subCategoryId: string
 
     @Field()
-    @Column()
+    @Column({unique:true})
     name: string
 
     @Field()
