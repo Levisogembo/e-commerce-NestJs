@@ -4,6 +4,7 @@ import { ConfigService } from '@nestjs/config';
 import { redisConfig } from './redis.config';
 import {Redis} from 'ioredis'
 import { error } from 'console';
+import { redisInventoryService } from './redisInventory.service';
 
 @Global()
 @Module({
@@ -22,8 +23,8 @@ import { error } from 'console';
         return redisClient
       }
     },
-    RedisService
+    RedisService, redisInventoryService
   ],
-  exports:['REDIS_CLIENT',RedisService]
+  exports:['REDIS_CLIENT',RedisService, redisInventoryService]
 })
 export class RedisModule {}

@@ -1,5 +1,5 @@
 import { Field, InputType, Int } from "@nestjs/graphql";
-import { IsNotEmpty, IsNumber, IsString } from "class-validator";
+import { IsNotEmpty, IsNumber, IsString, IsUUID } from "class-validator";
 
 @InputType()
 export class createProductInput {
@@ -30,11 +30,11 @@ export class createProductInput {
 
     @Field()
     @IsNotEmpty()
-    @IsString()
+    @IsUUID()
     category: string
 
     @Field()
     @IsNotEmpty()
-    @IsString()
+    @IsUUID()
     subCategory: string
 }

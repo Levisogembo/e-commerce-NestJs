@@ -155,6 +155,7 @@ type Mutation {
   deleteSubCategory(subCategoryId: String!): String!
   createProduct(productPayload: createProductInput!): Product!
   deleteProduct(productId: String!): String!
+  updateProduct(productId: String!, updatePayload: updateProductInput!): Product!
 }
 
 input localInput {
@@ -230,4 +231,14 @@ input createProductInput {
   quantity: Int!
   category: String!
   subCategory: String!
+}
+
+input updateProductInput {
+  name: String
+  description: String
+  brand: String
+  price: Int
+  quantity: Int
+  category: String
+  subCategory: String
 }
