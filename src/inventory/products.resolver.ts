@@ -7,6 +7,7 @@ import { productService } from "./product.service";
 import { JwtGqlGuard } from "src/auth/guards/jwt.guard";
 import { RolesGuard } from "src/auth/guards/roles.guard";
 import { createProductInput } from "./dtos/createProduct.input";
+import { updateProductInput } from "./dtos/updateProduct.input";
 
 
 @Resolver(()=>Product)
@@ -36,5 +37,12 @@ export class productResolver {
     @UseGuards(JwtGqlGuard,RolesGuard)
     async deleteProduct(@Args("productId",ParseUUIDPipe) productId: string){
         return this.productService.deleteProduct(productId)
+    }
+
+    @Mutation(()=>Product)
+    @ROLES(Roles.ADMIN)
+    @UseGuards(JwtGqlGuard,RolesGuard)
+    async updateProduct(@Args("productId",ParseUUIDPipe) productId: string, @Args("updatePayload") updatePayload: updateProductInput ){
+        return await this.productService.updateProduct(productId,updatePayload)
     }
 }
