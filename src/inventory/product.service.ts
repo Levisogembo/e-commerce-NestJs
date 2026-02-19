@@ -81,11 +81,14 @@ export class productService {
     }
 
     async updateProduct(productId: string, { category, subCategory, ...data }: updateProductInput) {
+        const cacheKey = `product:${productId}`
         const foundProduct = await this.productRepository.findOne({
             where:{productId},
             relations: ['category','subCategory']
         })
         if(!foundProduct) throw new NotFoundException('product not found')
+        //delete existing product information from the cache
+        await this.redisInventoryService.removeItem(cacheKey)
         if (category && subCategory) {
             const foundCategory = await this.categoryRepository.findOne({ where: { categoryId: category } })
             if (!foundCategory) throw new NotFoundException('category not found')
@@ -101,7 +104,10 @@ export class productService {
                 subCategory: foundSubCategory,
                 updatedAt: new Date()
             })
-            return await this.productRepository.findOne({ where: { productId } })
+            const updatedProduct = await this.productRepository.findOne({ where: { productId } })
+            //update cache with new product details
+            await this.redisInventoryService.storeItem(cacheKey,JSON.stringify(updatedProduct),600)
+            return updatedProduct
         } else if (category && !subCategory) {
             const foundCategory = await this.categoryRepository.findOne({ where: { categoryId: category } })
             if (!foundCategory) throw new NotFoundException('category not found')
@@ -111,7 +117,10 @@ export class productService {
                 category: foundCategory,
                 updatedAt: new Date()
             })
-            return await this.productRepository.findOne({ where: { productId } })
+            const updatedProduct = await this.productRepository.findOne({ where: { productId } })
+            //update cache with new product details
+            await this.redisInventoryService.storeItem(cacheKey,JSON.stringify(updatedProduct),600)
+            return updatedProduct
         } else if (subCategory && !category) {
             const foundSubCategory = await this.subCategoryRepository.findOne({
                 where: { subCategoryId: subCategory },
@@ -124,13 +133,19 @@ export class productService {
                 subCategory: foundSubCategory,
                 updatedAt: new Date()
             })
-            return await this.productRepository.findOne({ where: { productId } })
+            const updatedProduct = await this.productRepository.findOne({ where: { productId } })
+            //update cache with new product details
+            await this.redisInventoryService.storeItem(cacheKey,JSON.stringify(updatedProduct),600)
+            return updatedProduct
         } else {
             await this.productRepository.update(productId, {
                 ...data,
                 updatedAt: new Date()
             })
-            return await this.productRepository.findOne({ where: { productId } })
+            const updatedProduct = await this.productRepository.findOne({ where: { productId } })
+            //update cache with new product details
+            await this.redisInventoryService.storeItem(cacheKey,JSON.stringify(updatedProduct),600)
+            return updatedProduct
         }
     }
 }

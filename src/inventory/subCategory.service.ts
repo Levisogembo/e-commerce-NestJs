@@ -5,12 +5,14 @@ import { subCategory } from "src/typeorm/entities/subCategory";
 import { Repository } from "typeorm";
 import { createSubCategoryInput } from "./dtos/createSubCategory.input";
 import { updateSubCategoryInput } from "./dtos/updateSubCategory.input";
+import { redisInventoryService } from "src/redis/redisInventory.service";
 
 
 @Injectable()
 export class subCategoryService {
     constructor(@InjectRepository(subCategory) private subCategoryRepository: Repository<subCategory>,
-        @InjectRepository(Category) private categoryRepository: Repository<Category>) { }
+        @InjectRepository(Category) private categoryRepository: Repository<Category>,
+        private redisInventoryService: redisInventoryService) { }
 
     async createSubCategory({ category, name, description }: createSubCategoryInput) {
         const foundCategory = await this.categoryRepository.findOne({ where: { categoryId: category } })
@@ -22,7 +24,11 @@ export class subCategoryService {
             description,
             category: foundCategory
         })
-        return await this.subCategoryRepository.save(newSubCategory)
+        const savedSubCategory = await this.subCategoryRepository.save(newSubCategory)
+        //save category once it is created
+        const cacheKey = `subCategory:${savedSubCategory.subCategoryId}`
+        await this.redisInventoryService.storeItem(cacheKey, JSON.stringify(savedSubCategory), 3600)
+        return savedSubCategory
     }
 
     async updateSubCategory(subCategoryId: string, { category, name, description }: updateSubCategoryInput) {
@@ -39,19 +45,32 @@ export class subCategoryService {
         } else {
             await this.subCategoryRepository.update(subCategoryId, { name, description })
         }
-
-        return await this.subCategoryRepository.findOne({ where: { subCategoryId } })
+        const cacheKey = `subCategory:${subCategoryId}`
+        //delete item from cache before updating
+        await this.redisInventoryService.removeItem(cacheKey)
+        const updatedItem = await this.subCategoryRepository.findOne({ where: { subCategoryId } })
+        //store updated item
+        await this.redisInventoryService.storeItem(cacheKey, JSON.stringify(updatedItem), 3600)
+        return updatedItem
     }
 
-    async getSubCategory(subCategoryId:string){
-        const foundItem = await this.subCategoryRepository.findOne({where:{subCategoryId}})
-        if(!foundItem) throw new NotFoundException('Sub category not found')
+    async getSubCategory(subCategoryId: string) {
+        //check to see if item is in cache
+        const cacheKey = `subCategory:${subCategoryId}`
+        const cachedItem = await this.redisInventoryService.getItem(cacheKey)
+        if (cachedItem) {
+            return JSON.parse(cachedItem)
+        }
+
+        const foundItem = await this.subCategoryRepository.findOne({ where: { subCategoryId }, relations:['category'] })
+        if (!foundItem) throw new NotFoundException('Sub category not found')
+        await this.redisInventoryService.storeItem(cacheKey, JSON.stringify(foundItem), 3600)
         return foundItem
     }
 
-    async deleteSubCategory(subCategoryId:string){
-        const foundItem = await this.subCategoryRepository.findOne({where:{subCategoryId}})
-        if(!foundItem) throw new NotFoundException('Sub category not found')
+    async deleteSubCategory(subCategoryId: string) {
+        const foundItem = await this.subCategoryRepository.findOne({ where: { subCategoryId } })
+        if (!foundItem) throw new NotFoundException('Sub category not found')
         await this.subCategoryRepository.delete(subCategoryId)
         return "Subcategory Deleted successfully"
     }
