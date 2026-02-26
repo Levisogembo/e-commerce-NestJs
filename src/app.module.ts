@@ -21,6 +21,8 @@ import { subCategory } from './typeorm/entities/subCategory';
 import { EmailsModule } from './emails/emails.module';
 import { RedisModule } from './redis/redis.module';
 import { InventoryModule } from './inventory/inventory.module';
+import { OrdersModule } from './orders/orders.module';
+import { QueuesModule } from './queues/queues.module';
 
 @Module({
   imports: [
@@ -52,7 +54,9 @@ import { InventoryModule } from './inventory/inventory.module';
     RolesModule,
     EmailsModule,
     RedisModule,
-    InventoryModule
+    InventoryModule,
+    OrdersModule,
+    QueuesModule
   ],
   controllers: [AppController],
   providers: [AppService],
