@@ -90,7 +90,7 @@ type Orders {
   billingAddress: String!
   paymentMethod: String!
   createdAt: DateTime!
-  OrderItems: [orderItems!]!
+  orderItems: [orderItems!]!
   user: User!
   payments: [Payments!]!
 }

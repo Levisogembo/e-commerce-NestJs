@@ -32,6 +32,12 @@ export class Product{
     @Column()
     quantity: number
 
+    @Column({default:0})
+    reservedQuantity: number
+
+    @Column({default:0})
+    soldQuantity: number
+
     @Field()
     @Column()
     createdAt: Date

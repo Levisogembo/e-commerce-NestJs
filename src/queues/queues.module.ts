@@ -4,6 +4,11 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { BullMqRedisConfig } from './redis-connection.config';
 import { QUEUES } from './Dtos/queues.constants';
 import { QueuesService } from './queues.service';
+import { OrderProcessor } from './processors/order.processor';
+import { PaymentProcessor } from './processors/payment.processor';
+import { InventoryProcessor } from './processors/inventory.processor';
+import { EmailProcessor } from './processors/email.processor';
+import { TestQueueController } from './queues.controller';
 
 @Global()
 @Module({
@@ -50,7 +55,7 @@ import { QueuesService } from './queues.service';
             name: QUEUES.INVENTORY,
             defaultJobOptions: {
                 attempts: 3,
-                backoff: {type:'exponential', delay: 2000},
+                backoff: { type: 'exponential', delay: 2000 },
                 priority: 2
             }
         }),
@@ -58,27 +63,29 @@ import { QueuesService } from './queues.service';
         BullModule.registerQueue({
             name: QUEUES.EMAIL,
             defaultJobOptions: {
-              attempts: 3,
-              backoff: { 
-                type: 'fixed',                     // Fixed delay between retries
-                delay: 5000                         // Wait 5 seconds between retries
-              },
-              removeOnComplete: {
-                age: 600,                           // Remove email jobs after 10 minutes
-                count: 1000,
-              },
+                attempts: 3,
+                backoff: {
+                    type: 'fixed',                     // Fixed delay between retries
+                    delay: 5000                         // Wait 5 seconds between retries
+                },
+                removeOnComplete: {
+                    age: 600,                           // Remove email jobs after 10 minutes
+                    count: 1000,
+                },
             },
-          }),
+        }),
 
         BullModule.registerQueue({
             name: QUEUES.PAYMENT,
             defaultJobOptions: {
                 attempts: 5,
-                backoff: {type:'exponential', delay: 2000},
+                backoff: { type: 'exponential', delay: 2000 },
                 priority: 1
             }
         }),
     ],
-    providers: [QueuesService]
+    controllers: [TestQueueController],
+    providers: [QueuesService, OrderProcessor, PaymentProcessor, InventoryProcessor, EmailProcessor],
+    exports: [QueuesService]
 })
-export class QueuesModule {}
+export class QueuesModule { }
