@@ -3,6 +3,7 @@ import { orderItems } from "./orderItems";
 import { User } from "./User";
 import { Payments } from "./Payments";
 import { Field, ObjectType } from "@nestjs/graphql";
+import { orderStatus } from "src/orders/Dtos/status.enum";
 
 @ObjectType()
 @Entity({name:'orders'})
@@ -16,8 +17,8 @@ export class Orders{
     total: number
 
     @Field()
-    @Column()
-    status: string
+    @Column({default:orderStatus.Pending})
+    status: orderStatus
 
     @Field()
     @Column()
@@ -33,7 +34,7 @@ export class Orders{
 
     @Field(()=>[orderItems])
     @OneToMany(()=>orderItems,(items)=>items.Order)
-    OrderItems: orderItems[]
+    orderItems: orderItems[]
 
     @Field(()=>User)
     @ManyToOne(()=>User,(user)=>user.orders)

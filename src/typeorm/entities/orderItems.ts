@@ -23,7 +23,7 @@ export class orderItems{
     subTotal: number
 
     @Field(()=>Orders)
-    @ManyToOne(()=>Orders,(order)=>order.OrderItems)
+    @ManyToOne(()=>Orders,(order)=>order.orderItems)
     @JoinColumn()
     Order: Orders
 
