@@ -9,10 +9,15 @@ import { PaymentProcessor } from './processors/payment.processor';
 import { InventoryProcessor } from './processors/inventory.processor';
 import { EmailProcessor } from './processors/email.processor';
 import { TestQueueController } from './queues.controller';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { Orders } from 'src/typeorm/entities/Order';
+import { orderItems } from 'src/typeorm/entities/orderItems';
+import { Product } from 'src/typeorm/entities/Product';
 
 @Global()
 @Module({
     imports: [
+        TypeOrmModule.forFeature([Orders,orderItems, Product]),
         //configure bullmq connection to redis
         BullModule.forRootAsync({
             imports: [ConfigModule],

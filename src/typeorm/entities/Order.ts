@@ -17,7 +17,7 @@ export class Orders{
     total: number
 
     @Field()
-    @Column({default:orderStatus.Pending})
+    @Column({type:'enum',enum: orderStatus,default:orderStatus.PENDING})
     status: orderStatus
 
     @Field()

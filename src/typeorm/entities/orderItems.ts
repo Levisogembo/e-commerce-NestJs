@@ -28,7 +28,7 @@ export class orderItems{
     Order: Orders
 
     @Field(()=>Product)
-    @ManyToMany(()=>Product,(prod)=>prod.OrderItems)
+    @ManyToOne(()=>Product,(prod)=>prod.OrderItems)
     @JoinColumn()
     Product: Product
 
