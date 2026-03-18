@@ -109,7 +109,7 @@ export class OrdersService {
         //return response after order is processed in the queue
         const completedOrder = await this.orderRepository.findOne({
             where: {orderId: savedOrder.orderId},
-            relations: ['orderItems','orderItems.product'],
+            relations: ['orderItems','orderItems.Product'],
         })
 
         return {...completedOrder,message: 'Order created successfully and queued for processing'}

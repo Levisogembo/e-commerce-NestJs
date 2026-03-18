@@ -126,6 +126,19 @@ type Role {
   user: [User!]!
 }
 
+type returnOrderResponse {
+  orderId: String!
+  total: Float!
+  status: String!
+  billingAddress: String!
+  paymentMethod: String!
+  createdAt: DateTime!
+  orderItems: [orderItems!]!
+  user: User!
+  payments: [Payments!]!
+  message: String!
+}
+
 type Query {
   sendVerificationEmail: String!
   hello: String!
@@ -156,6 +169,7 @@ type Mutation {
   createProduct(productPayload: createProductInput!): Product!
   deleteProduct(productId: String!): String!
   updateProduct(productId: String!, updatePayload: updateProductInput!): Product!
+  createNewOrder(orderPayload: createOrderInput!): returnOrderResponse!
 }
 
 input localInput {
@@ -241,4 +255,17 @@ input updateProductInput {
   quantity: Int
   category: String
   subCategory: String
+}
+
+input createOrderInput {
+  items: [orderItemInput!]!
+  total: Float!
+  billingAddress: String!
+  paymentMethod: String!
+}
+
+input orderItemInput {
+  productId: String!
+  quantity: Int!
+  unitPrice: Int!
 }
