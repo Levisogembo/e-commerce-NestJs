@@ -9,7 +9,6 @@ import { orderItems } from "src/typeorm/entities/orderItems";
 import { Product } from "src/typeorm/entities/Product";
 import { QueuesService } from "../queues.service";
 import { orderStatus } from "src/orders/Dtos/status.enum";
-import { throws } from "assert";
 
 @Processor(QUEUES.ORDER)
 @Injectable()
@@ -46,13 +45,12 @@ export class OrderProcessor extends WorkerHost {
         const { orderId, userId, items, total, paymentMethod } = job.data
         this.logger.log(`Processing order ${orderId} for ${userId}`)
 
-        await job.updateProgress(10)
 
         try {
             //update order status to processing
             await this.ordersRepository.update(orderId, { status: orderStatus.PROCESSING })
             this.logger.log('Order status updated to PROCESSING');
-            await job.updateProgress(20)
+            //await this.safeUpdateProgress(job, 20)
 
             //check if order is still valid
             const order = await this.ordersRepository.findOne({
@@ -60,13 +58,13 @@ export class OrderProcessor extends WorkerHost {
                 relations: ['orderItems']
             })
             if (!order) throw new NotFoundException('order not found')
-            await job.updateProgress(30)
+            //await this.safeUpdateProgress(job, 30)
 
             //simulate payments processing
             this.logger.log('Processing payment...')
             const paymentResult = await this.simulatePayment({ orderId, amount: total, method: paymentMethod })
             if (paymentResult.transactionId) this.logger.log(`Transaction ID: ${paymentResult.transactionId}`)
-            await job.updateProgress(50)
+            //await this.safeUpdateProgress(job, 50)
 
             //update inventory according to payment results
             this.logger.log('Step 4: Updating inventory...')
@@ -76,7 +74,7 @@ export class OrderProcessor extends WorkerHost {
                 await this.ordersRepository.manager.transaction(
                     async (transactionManager) => {
                         const orders = await transactionManager.find(orderItems, {
-                            where: { Order: orderId },
+                            where: { Order: { orderId } },
                             relations: ['Product']
                         })
                         for (const item of orders) {
@@ -101,25 +99,31 @@ export class OrderProcessor extends WorkerHost {
                 await this.ordersRepository.manager.transaction(
                     async (transactionManager) => {
                         const orders = await transactionManager.find(orderItems, {
-                            where: { Order: orderId },
+                            where: { Order: { orderId } },
                             relations: ['Product']
                         })
                         for (const item of orders) {
                             this.logger.log('Releasing items')
-                            await transactionManager.createQueryBuilder().update(Product)
+                            await transactionManager
+                                .createQueryBuilder()
+                                .update(Product)
                                 .set({
-                                    reservedQuantity: () => `reservedQuantity - ${item.quantity}`
+                                    reservedQuantity: () => `reservedQuantity - :qty`
                                 })
-                                .where('productId = :productID', { productId: item.Product.productId }).execute()
+                                .where('productId = :productId', {
+                                    productId: item.Product.productId,
+                                    qty: item.quantity
+                                })
+                                .execute();
                         }
                         this.logger.log('Inventory released successfully')
                     }
                 )
             }
 
-            await job.updateProgress(90)
+            //await this.safeUpdateProgress(job, 90)
             this.logger.log(`ORDER ${orderId} PROCESSING COMPLETE`)
-            await job.updateProgress(100)
+            //await this.safeUpdateProgress(job, 100)
             return {
                 success: paymentResult.success,
                 orderId,
