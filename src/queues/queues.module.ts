@@ -51,7 +51,11 @@ import { Product } from 'src/typeorm/entities/Product';
                     type: 'exponential',
                     delay: 2000
                 },
-                priority: 3
+                priority: 3,
+                // Keep job data in redis while it's being retried.
+                // Otherwise we can hit "Missing key for job ... updateProgress" in workers.
+                removeOnComplete: false,
+                removeOnFail: false
             }
         }),
 

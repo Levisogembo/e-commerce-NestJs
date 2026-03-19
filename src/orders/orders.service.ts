@@ -31,7 +31,7 @@ export class OrdersService {
 
             //check if quantity is available
             const availableQuantity = product.quantity - product.reservedQuantity
-            if (availableQuantity < item.quantity) throw new BadRequestException(`Insufficient inventory for ${product.name}` +
+            if (availableQuantity < item.quantity) throw new BadRequestException(`Insufficient inventory for ${product.name}` + ' ' +
                 `Available: ${availableQuantity}, Requested: ${item.quantity}`)
 
             //store valid products
@@ -104,6 +104,7 @@ export class OrdersService {
             })
         } catch (error) {
             console.log(`Failed to queue order: ${error.message}`)
+            throw error
         }
 
         //return response after order is processed in the queue
