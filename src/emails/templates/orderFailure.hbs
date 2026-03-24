@@ -1,0 +1,66 @@
+<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+  <h1 style="color: #f44336;">Payment Failed</h1>
+  <p>We could not process your payment. Please review the order details below.</p>
+
+  {{#if data}}
+    {{#with data}}
+      <div style="background: #ffebee; padding: 15px; border-radius: 8px; margin: 20px 0;">
+        <h3 style="margin-top: 0; color: #c62828;">Order Details</h3>
+        <p><strong>Order ID:</strong> {{orderId}}</p>
+        <p><strong>Amount:</strong> ${{total}}</p>
+        <p><strong>Date:</strong> {{date}}</p>
+        {{#if errorMessage}}<p><strong>Error:</strong> {{errorMessage}}</p>{{/if}}
+      </div>
+
+      <h3>Items</h3>
+      <table style="width: 100%; border-collapse: collapse;">
+        <thead>
+          <tr>
+            <th style="text-align: left; padding: 8px; border-bottom: 1px solid #ddd;">Product</th>
+            <th style="text-align: center; padding: 8px; border-bottom: 1px solid #ddd;">Quantity</th>
+            <th style="text-align: right; padding: 8px; border-bottom: 1px solid #ddd;">Price</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{#each items}}
+            <tr>
+              <td style="padding: 8px; border-bottom: 1px solid #eee;">{{productId}}</td>
+              <td style="text-align: center; padding: 8px; border-bottom: 1px solid #eee;">{{quantity}}</td>
+              <td style="text-align: right; padding: 8px; border-bottom: 1px solid #eee;">${{price}}</td>
+            </tr>
+          {{/each}}
+        </tbody>
+      </table>
+    {{/with}}
+  {{else}}
+    <div style="background: #ffebee; padding: 15px; border-radius: 8px; margin: 20px 0;">
+      <h3 style="margin-top: 0; color: #c62828;">Order Details</h3>
+      <p><strong>Order ID:</strong> {{orderId}}</p>
+      <p><strong>Amount:</strong> ${{total}}</p>
+      <p><strong>Date:</strong> {{date}}</p>
+      {{#if errorMessage}}<p><strong>Error:</strong> {{errorMessage}}</p>{{/if}}
+    </div>
+
+    <h3>Items</h3>
+    <table style="width: 100%; border-collapse: collapse;">
+      <thead>
+        <tr>
+          <th style="text-align: left; padding: 8px; border-bottom: 1px solid #ddd;">Product</th>
+          <th style="text-align: center; padding: 8px; border-bottom: 1px solid #ddd;">Quantity</th>
+          <th style="text-align: right; padding: 8px; border-bottom: 1px solid #ddd;">Price</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#each items}}
+          <tr>
+            <td style="padding: 8px; border-bottom: 1px solid #eee;">{{productId}}</td>
+            <td style="text-align: center; padding: 8px; border-bottom: 1px solid #eee;">{{quantity}}</td>
+            <td style="text-align: right; padding: 8px; border-bottom: 1px solid #eee;">${{price}}</td>
+          </tr>
+        {{/each}}
+      </tbody>
+    </table>
+  {{/if}}
+
+  <p style="margin-top: 20px;">Please try another payment method or retry from your orders page.</p>
+</div>
