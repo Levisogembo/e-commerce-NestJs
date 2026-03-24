@@ -30,10 +30,10 @@ export class QueuesService {
     //process orders in the queue after they are created
     async addOrderJob(data: orderJobData) {
         this.logger.log(`adding order job for : ${data.orderId}`)
-
+        
         try {
             const job = await this.orderQueue.add(JOB_NAMES.PROCESS_ORDER, data, {
-                jobId: `order-${data.orderId}`,
+                jobId: `order-${data.orderId}-${Date.now()}`,
                 delay: 0,
                 priority: 2,
                 attempts: 5,
@@ -43,6 +43,7 @@ export class QueuesService {
                 },
                 timestamp: Date.now()
             })
+            this.logger.log(`Job ${job.id} lock renewed at ${new Date().toISOString()}`);
             this.logger.log(`Order Job created with Id: ${job.id}`)
             return {
                 jobId: job.id,

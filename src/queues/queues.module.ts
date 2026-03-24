@@ -13,11 +13,12 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Orders } from 'src/typeorm/entities/Order';
 import { orderItems } from 'src/typeorm/entities/orderItems';
 import { Product } from 'src/typeorm/entities/Product';
+import { User } from 'src/typeorm/entities/User';
 
 @Global()
 @Module({
     imports: [
-        TypeOrmModule.forFeature([Orders,orderItems, Product]),
+        TypeOrmModule.forFeature([Orders,orderItems, Product, User]),
         //configure bullmq connection to redis
         BullModule.forRootAsync({
             imports: [ConfigModule],

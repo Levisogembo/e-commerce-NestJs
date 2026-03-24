@@ -24,6 +24,7 @@ export interface paymentJobData {
 export interface emailJobData {
     to: string
     subject: string
+    template: string
     data: Record<string,any>
 }
 

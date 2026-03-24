@@ -6,7 +6,6 @@ export const BullMqRedisConfig = (configService: ConfigService) => ({
     port: configService.get<number>("REDIS_PORT", 6379),
     password: configService.get<string>('REDIS_PASSWORD'),
     db: configService.get<number>('REDIS_DB', 0),
-    keyPrefix: 'bull:',
 
     maxRetriesPerRequest: null,
     enableReadyCheck: false,

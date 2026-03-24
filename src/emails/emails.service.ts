@@ -115,4 +115,30 @@ export class EmailsService {
       return { status: 'err', message: error.message };
     }
   }
+
+  async sendOrderSuccess(to:string,subject:string,template:string,data:Record<string,any>){
+    try {
+      const currentYear = new Date().getFullYear();
+      template === "orderSuccess" ? "orderSuccess" : "orderFailure"
+      const html = this.compileTemplate(template, { data });
+      const info = this.transporter.sendMail({
+        to,
+        from: this.configService.get<string>('SMTP_USER'),
+        subject,
+        attachments: [
+          {
+            filename: 'cart.png',
+            path: path.resolve('./src/utils/logos/cart.png'),
+            cid: 'companyLogo',
+          },
+        ],
+        html,
+      });
+      console.log('email successfully sent to:', info);
+      return { status: 'success' };
+    } catch (error) {
+      console.log(error);
+      return { status: 'err', message: error.message };
+    }
+  }
 }

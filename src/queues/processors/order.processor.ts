@@ -9,6 +9,7 @@ import { orderItems } from "src/typeorm/entities/orderItems";
 import { Product } from "src/typeorm/entities/Product";
 import { QueuesService } from "../queues.service";
 import { orderStatus } from "src/orders/Dtos/status.enum";
+import { User } from "src/typeorm/entities/User";
 
 @Processor(QUEUES.ORDER)
 @Injectable()
@@ -17,6 +18,7 @@ export class OrderProcessor extends WorkerHost {
     constructor(@InjectRepository(Orders) private ordersRepository: Repository<Orders>,
         @InjectRepository(orderItems) private orderItemsRepository: Repository<orderItems>,
         @InjectRepository(Product) private productsRepository: Repository<Product>,
+        @InjectRepository(User) private userRepository: Repository<User>,
         private queueService: QueuesService) {
         super()
         this.logger.log(`Order processor initialized`)
@@ -43,10 +45,18 @@ export class OrderProcessor extends WorkerHost {
 
     private async handleOrderProcessing(job: Job) {
         const { orderId, userId, items, total, paymentMethod } = job.data
+        const workerId = `${process.pid}-${Date.now()}`
+        this.logger.log(`[START] Job ${job.id} | worker=${workerId} | attempts=${job.attemptsMade}`)
         this.logger.log(`Processing order ${orderId} for ${userId}`)
 
 
         try {
+            const user = await this.userRepository.findOne({
+                where: {userId},
+                select: {email:true,firstName:true}
+            })
+            if(!user) throw new NotFoundException('User not found')
+            
             //update order status to processing
             await this.ordersRepository.update(orderId, { status: orderStatus.PROCESSING })
             this.logger.log('Order status updated to PROCESSING');
@@ -67,7 +77,7 @@ export class OrderProcessor extends WorkerHost {
             //await this.safeUpdateProgress(job, 50)
 
             //update inventory according to payment results
-            this.logger.log('Step 4: Updating inventory...')
+            this.logger.log('Updating inventory...')
             if (paymentResult.success) {
                 //update the reserved inventory as sold
                 this.logger.log('Payment successful - committing inventory...')
@@ -90,9 +100,27 @@ export class OrderProcessor extends WorkerHost {
                         this.logger.log('Inventory committed successfully')
 
                         //update order status after payment completion
-                        await this.ordersRepository.update(orderId, { status: orderStatus.COMPLETED })
+                        await transactionManager.update(Orders, orderId, {
+                            status: orderStatus.COMPLETED
+                        });
                     }
+                
                 )
+                //send confirmation email to user
+                await this.queueService.addEmailJobData({
+                    to: user.email,
+                    subject: `Order ${orderId} Confirmed!`,
+                    template: 'orderSuccess',
+                    data: {
+                        orderId,
+                        total,
+                        items,
+                        transactionId: paymentResult.transactionId,
+                        date: new Date().toISOString()
+                    }
+                })
+                this.logger.log(`Email queued to ${user.email}`)
+
             } else {
                 //release the reserved products
                 this.logger.log('Payment failed - releasing reserved inventory...')
@@ -119,10 +147,29 @@ export class OrderProcessor extends WorkerHost {
                         this.logger.log('Inventory released successfully')
                     }
                 )
+                //send failure message to user
+                await this.queueService.addEmailJobData({
+                    to: user.email,
+                    subject: `Payment failed for order ${orderId}`,
+                    template: 'orderFailure',
+                    data: {
+                        orderId,
+                        total,
+                        items,
+                        date: new Date().toISOString()
+                    }
+                })
+                this.logger.log(`Email queued to ${user.email}`)
             }
-
+            const start = Date.now();
             //await this.safeUpdateProgress(job, 90)
             this.logger.log(`ORDER ${orderId} PROCESSING COMPLETE`)
+            this.logger.log(
+                `[END] Job ${job.id} | worker=${workerId}`
+              );
+              this.logger.log(
+                `[TIME] Job ${job.id} took ${Date.now() - start}ms`
+              );
             //await this.safeUpdateProgress(job, 100)
             return {
                 success: paymentResult.success,
