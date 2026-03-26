@@ -125,13 +125,13 @@ export class EmailsService {
         to,
         from: this.configService.get<string>('SMTP_USER'),
         subject,
-        attachments: [
-          {
-            filename: 'cart.png',
-            path: path.resolve('./src/utils/logos/cart.png'),
-            cid: 'companyLogo',
-          },
-        ],
+        // attachments: [
+        //   {
+        //     filename: 'cart.png',
+        //     path: path.resolve('./src/utils/logos/cart.png'),
+        //     cid: 'companyLogo',
+        //   },
+        // ],
         html,
       });
       console.log('email successfully sent to:', info);

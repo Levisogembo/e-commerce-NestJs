@@ -106,6 +106,7 @@ export class OrderProcessor extends WorkerHost {
                     }
                 
                 )
+                
                 //send confirmation email to user
                 await this.queueService.addEmailJobData({
                     to: user.email,
