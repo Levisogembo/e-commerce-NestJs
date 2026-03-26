@@ -24,6 +24,7 @@ export class OrdersService {
             product: Product;
             requestedQty: number;
             unitPrice: number;
+            name: string
         }> = []
         for (const item of payload.items) {
             const product = await this.productRepository.findOne({ where: { productId: item.productId } })
@@ -38,7 +39,8 @@ export class OrdersService {
             productChecks.push({
                 product,
                 requestedQty: item.quantity,
-                unitPrice: item.unitPrice
+                unitPrice: item.unitPrice,
+                name: product.name
             })
 
 
@@ -89,18 +91,28 @@ export class OrdersService {
         )
 
         //push the saved order to the queue for processing
+
         try {
+            //include the name of the product
+            const productValues = payload.items.map((item) => {
+                const match = productChecks.find((res) => res.product.productId === item.productId)
+                if(!match) throw new NotFoundException('Product name not found')
+                return {
+                    productId: item.productId,
+                    quantity: item.quantity,
+                    price: item.unitPrice,
+                    name: match.name 
+                }
+            })
+            //console.log(productValues);
+            
             await this.queueService.addOrderJob({
                 orderId: savedOrder.orderId,
                 userId,
                 total,
                 paymentMethod: payload.paymentMethod,
                 billingAddress: payload.billingAddress,
-                items: payload.items.map((item)=>({
-                    productId: item.productId,
-                    quantity: item.quantity,
-                    price: item.unitPrice
-                }))
+                items: productValues
             })
         } catch (error) {
             console.log(`Failed to queue order: ${error.message}`)
@@ -109,10 +121,10 @@ export class OrdersService {
 
         //return response after order is processed in the queue
         const completedOrder = await this.orderRepository.findOne({
-            where: {orderId: savedOrder.orderId},
-            relations: ['orderItems','orderItems.Product'],
+            where: { orderId: savedOrder.orderId },
+            relations: ['orderItems', 'orderItems.Product'],
         })
 
-        return {...completedOrder,message: 'Order created successfully and queued for processing'}
+        return { ...completedOrder, message: 'Order created successfully and queued for processing' }
     }
 }
