@@ -23,6 +23,7 @@ import { RedisModule } from './redis/redis.module';
 import { InventoryModule } from './inventory/inventory.module';
 import { OrdersModule } from './orders/orders.module';
 import { QueuesModule } from './queues/queues.module';
+import { MpesaModule } from './mpesa/mpesa.module';
 
 @Module({
   imports: [
@@ -56,7 +57,8 @@ import { QueuesModule } from './queues/queues.module';
     RedisModule,
     InventoryModule,
     OrdersModule,
-    QueuesModule
+    QueuesModule,
+    MpesaModule
   ],
   controllers: [AppController],
   providers: [AppService],
