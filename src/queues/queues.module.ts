@@ -14,11 +14,14 @@ import { Orders } from 'src/typeorm/entities/Order';
 import { orderItems } from 'src/typeorm/entities/orderItems';
 import { Product } from 'src/typeorm/entities/Product';
 import { User } from 'src/typeorm/entities/User';
+import { MpesaModule } from 'src/mpesa/mpesa.module';
 
 @Global()
 @Module({
     imports: [
         TypeOrmModule.forFeature([Orders,orderItems, Product, User]),
+
+        MpesaModule,
         //configure bullmq connection to redis
         BullModule.forRootAsync({
             imports: [ConfigModule],

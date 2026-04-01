@@ -7,7 +7,8 @@ export enum orderStatus {
     PAYMENT_FAILED = 'PAYMENT_FAILED', 
     CANCELLED = 'CANCELLED',       
     EXPIRED = 'EXPIRED',           
-    REFUNDED = 'REFUNDED'
+    REFUNDED = 'REFUNDED',
+    PENDING_PAYMENT = 'PENDING_PAYMENT'
 }
 
 registerEnumType(orderStatus, { name: 'status' })

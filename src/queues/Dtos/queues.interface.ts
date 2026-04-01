@@ -11,6 +11,7 @@ export interface orderJobData {
     }>
     paymentMethod: string
     billingAddress: any
+    phoneNumber?: string
 }
 
 export interface paymentJobData {
