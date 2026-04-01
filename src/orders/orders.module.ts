@@ -6,9 +6,12 @@ import { Orders } from 'src/typeorm/entities/Order';
 import { Product } from 'src/typeorm/entities/Product';
 import { User } from 'src/typeorm/entities/User';
 import { orderItems } from 'src/typeorm/entities/orderItems';
+import { MpesaModule } from 'src/mpesa/mpesa.module';
+import { Payments } from 'src/typeorm/entities/Payments';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Orders, Product, User, orderItems])],
-  providers: [OrdersService, OrdersResolver]
+  imports: [TypeOrmModule.forFeature([Orders, Product, User, orderItems, Payments])],
+  providers: [OrdersService, OrdersResolver],
+  exports: [OrdersService]
 })
 export class OrdersModule {}

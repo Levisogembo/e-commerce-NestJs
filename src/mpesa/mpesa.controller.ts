@@ -1,4 +1,5 @@
 import { Body, Controller, HttpCode, HttpStatus, Logger, Post } from '@nestjs/common';
+import { OrdersService } from 'src/orders/orders.service';
 
 class CallbackMetadataItem {
     Name: string;
@@ -26,6 +27,8 @@ class MpesaCallbackDto {
 @Controller('mpesa')
 export class MpesaController {
     private readonly logger = new Logger(MpesaController.name)
+    constructor (private readonly ordersService: OrdersService){}
+
     @Post('callback')
     async handleCallBack(@Body() callBackData: MpesaCallbackDto) {
         this.logger.log('Mpesa callback received')
@@ -36,15 +39,15 @@ export class MpesaController {
             const resultDesc = stkCallback.ResultDesc;
             const merchantRequestId = stkCallback.MerchantRequestID
 
-            //successful payments
-            if (resultCode === 0) {
-                const metadata = stkCallback.CallbackMetadata?.Item || []
-                metadata.forEach(item => {
-                    this.logger.log(`   ${item.Name}: ${item.Value}`);
-                });
-            } else {
-                this.logger.log(`Payment failed `)
+            //extract possible metadata
+            let metadata: any = null
+            if(stkCallback.CallbackMetadata) {
+                metadata = stkCallback.CallbackMetadata.Item
             }
+            
+            const result = await this.ordersService.handleMpesaCallback({checkoutRequestId, resultCode, resultDesc, metadata})
+            this.logger.log(`Callback processed: ${result.message}`)
+            
             return {
                 ResultCode: 0,
                 ResultDesc: 'Callback received successfully',

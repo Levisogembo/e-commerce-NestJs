@@ -1,6 +1,6 @@
 import { Field, InputType, Int } from "@nestjs/graphql";
 import { Type } from "class-transformer";
-import { IsArray, IsNotEmpty, IsNumber, IsPositive, IsString, IsUUID, ValidateNested } from "class-validator";
+import { IsArray, IsNotEmpty, IsNumber, IsOptional, IsPositive, IsString, IsUUID, ValidateNested } from "class-validator";
 
 @InputType()
 export class orderItemInput {
@@ -42,4 +42,8 @@ export class createOrderInput {
     @IsNotEmpty()
     @IsString()
     paymentMethod: string
+
+    @Field(()=>String)
+    @IsOptional()
+    phoneNumber?: string
 }

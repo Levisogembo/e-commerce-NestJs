@@ -76,8 +76,8 @@ type Payments {
   transactionId: String!
   amount: Int!
   currency: String!
-  mpesaNumber: String!
-  stripeId: String!
+  mpesaNumber: String
+  stripeId: String
   paidAt: DateTime!
   user: User!
   order: Orders!
@@ -89,7 +89,10 @@ type Orders {
   status: String!
   billingAddress: String!
   paymentMethod: String!
+  mpesaCheckoutRequestId: String!
+  transactionId: String!
   createdAt: DateTime!
+  paidAt: DateTime
   orderItems: [orderItems!]!
   user: User!
   payments: [Payments!]!
@@ -132,7 +135,10 @@ type returnOrderResponse {
   status: String!
   billingAddress: String!
   paymentMethod: String!
+  mpesaCheckoutRequestId: String!
+  transactionId: String!
   createdAt: DateTime!
+  paidAt: DateTime
   orderItems: [orderItems!]!
   user: User!
   payments: [Payments!]!
@@ -262,6 +268,7 @@ input createOrderInput {
   total: Float!
   billingAddress: String!
   paymentMethod: String!
+  phoneNumber: String!
 }
 
 input orderItemInput {

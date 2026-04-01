@@ -22,13 +22,13 @@ export class Payments{
     @Column({default:'KES'})
     currency: string
 
-    @Field()
+    @Field({nullable:true})
     @Column({nullable:true})
-    mpesaNumber:  string
+    mpesaNumber?:  string
 
-    @Field()
+    @Field({nullable:true})
     @Column({nullable:true})
-    stripeId: string
+    stripeId?: string
 
     @Field()
     @Column()

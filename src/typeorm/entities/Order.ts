@@ -29,8 +29,20 @@ export class Orders{
     paymentMethod: string
 
     @Field()
+    @Column({nullable:true})
+    mpesaCheckoutRequestId?: string
+
+    @Field()
+    @Column({nullable:true})
+    transactionId?: string
+
+    @Field()
     @Column()
     createdAt: Date
+
+    @Field({nullable:true})
+    @Column({nullable:true})
+    paidAt: Date
 
     @Field(()=>[orderItems])
     @OneToMany(()=>orderItems,(items)=>items.Order)
