@@ -89,11 +89,15 @@ type Orders {
   status: String!
   billingAddress: String!
   paymentMethod: String!
-  mpesaCheckoutRequestId: String!
-  transactionId: String!
+  mpesaCheckoutRequestId: String
+  transactionId: String
   createdAt: DateTime!
   paidAt: DateTime
+  refundedAt: DateTime
+  refundReason: String!
+  refundTransactionId: String!
   orderItems: [orderItems!]!
+  isRefunded: Boolean!
   user: User!
   payments: [Payments!]!
 }
@@ -135,14 +139,34 @@ type returnOrderResponse {
   status: String!
   billingAddress: String!
   paymentMethod: String!
-  mpesaCheckoutRequestId: String!
-  transactionId: String!
+  mpesaCheckoutRequestId: String
+  transactionId: String
   createdAt: DateTime!
   paidAt: DateTime
+  refundedAt: DateTime
+  refundReason: String!
+  refundTransactionId: String!
   orderItems: [orderItems!]!
+  isRefunded: Boolean!
   user: User!
   payments: [Payments!]!
   message: String!
+}
+
+type returnReversalConfirmation {
+  success: String!
+  message: String!
+}
+
+type returnOrderCancelation {
+  success: String!
+  message: String!
+}
+
+type retryPaymentResponse {
+  success: Boolean!
+  message: String!
+  checkoutRequestId: String!
 }
 
 type Query {
@@ -176,6 +200,9 @@ type Mutation {
   deleteProduct(productId: String!): String!
   updateProduct(productId: String!, updatePayload: updateProductInput!): Product!
   createNewOrder(orderPayload: createOrderInput!): returnOrderResponse!
+  cancelOrder(orderId: String!): returnOrderCancelation!
+  retryOrder(retryPayload: retryPaymentInput!): retryPaymentResponse!
+  processReversal(orderId: String!, refundPayload: refundOrderInput!): returnReversalConfirmation!
 }
 
 input localInput {
@@ -275,4 +302,14 @@ input orderItemInput {
   productId: String!
   quantity: Int!
   unitPrice: Int!
+}
+
+input retryPaymentInput {
+  orderId: String!
+  phoneNumber: String
+}
+
+input refundOrderInput {
+  amount: Float!
+  reason: String!
 }

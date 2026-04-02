@@ -1,9 +1,10 @@
-import { Module } from '@nestjs/common';
+import { Global, Module } from '@nestjs/common';
 import { MpesaController } from './mpesa.controller';
 import { MpesaService } from './mpesa.service';
 import { HttpModule } from '@nestjs/axios';
 import { OrdersModule } from 'src/orders/orders.module';
 
+@Global()
 @Module({
   imports: [
     OrdersModule,
