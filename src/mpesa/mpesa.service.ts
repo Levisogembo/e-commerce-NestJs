@@ -189,10 +189,56 @@ export class MpesaService {
             })
             this.logger.log(`Payment details - Receipt: ${paymentDetails.mpesaReceiptNumber}, Amount: ${paymentDetails.amount}`)
             return paymentDetails
-        }else{
+        } else {
             //failed payments
             this.logger.warn(`Payment failed`)
             return null
+        }
+    }
+
+    async processReversal(originalTransactionId: string, amount: number, orderId: string, reason: string) {
+        this.logger.log(`Processing reversal request for order: ${orderId}`)
+
+        try {
+            const token = await this.getAccessToken()
+            const config = getMpesaConfig(this.configService);
+            const environment = this.configService.get('MPESA_ENVIRONMENT', 'sandbox');
+            const endpoints = getMpesaEndpoints(environment as 'sandbox' | 'production');
+
+            const timestamp = this.getTimestamp();
+            const password = this.generatePassword(
+                config.businessShortcode,
+                config.passkey,
+                timestamp,
+            )
+
+            const payload = {
+                CommandID: 'TransactionReversal',
+                Amount: Math.round(amount),
+                ReceiverParty: config.businessShortcode,
+                RecieverIdentifierType: '11',  // 11 = Paybill/Till number
+                TransactionID: originalTransactionId,
+                Occasion: reason.slice(0, 100),  // Reason (max 100 chars)
+                Remarks: `Refund for order ${orderId}`,
+                Initiator: 'api',
+                SecurityCredential: password,
+                QueueTimeOutURL: `${config.callbackUrl}/timeout`,
+                ResultURL: `${config.callbackUrl}/result`,
+            };
+            this.logger.debug('Reversal payload:', payload)
+            const response = await firstValueFrom(
+                this.httpService.post(endpoints.REVERSAL, payload, {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                    },
+                }),
+            )
+            this.logger.log(`Reversal initiated`)
+            return response.data
+        } catch (error) {
+            this.logger.error('Reversal failed:', error.response?.data || error.message);
+            throw new BadRequestException('Failed to process refund')
         }
     }
 

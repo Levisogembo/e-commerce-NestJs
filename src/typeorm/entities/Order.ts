@@ -28,12 +28,12 @@ export class Orders{
     @Column()
     paymentMethod: string
 
-    @Field()
-    @Column({nullable:true})
+    @Field({nullable: true})
+    @Column({nullable:true, default: null})
     mpesaCheckoutRequestId?: string
 
-    @Field()
-    @Column({nullable:true})
+    @Field({nullable: true})
+    @Column({nullable:true, default: null})
     transactionId?: string
 
     @Field()
@@ -44,9 +44,25 @@ export class Orders{
     @Column({nullable:true})
     paidAt: Date
 
+    @Field({nullable:true})
+    @Column({nullable:true})
+    refundedAt: Date
+
+    @Field()
+    @Column({ nullable: true })
+    refundReason: string
+  
+    @Field()
+    @Column({ nullable: true })
+    refundTransactionId: string
+
     @Field(()=>[orderItems])
     @OneToMany(()=>orderItems,(items)=>items.Order)
     orderItems: orderItems[]
+
+    @Field()
+    @Column({default: false})
+    isRefunded: Boolean
 
     @Field(()=>User)
     @ManyToOne(()=>User,(user)=>user.orders)

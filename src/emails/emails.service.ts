@@ -119,7 +119,13 @@ export class EmailsService {
   async sendOrderSuccess(to:string,subject:string,template:string,data:Record<string,any>){
     try {
       const currentYear = new Date().getFullYear();
-      template === "orderSuccess" ? "orderSuccess" : "orderFailure"
+      if(template === "orderSuccess"){
+        template = "orderSuccess"
+      }else if(template === "orderFailure"){
+        template = "orderFailure"
+      }else{
+        template = "reversalConfirmation"
+      }    
       const html = this.compileTemplate(template, { data });
       const info = this.transporter.sendMail({
         to,

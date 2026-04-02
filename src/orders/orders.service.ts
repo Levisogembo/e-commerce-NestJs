@@ -1,4 +1,4 @@
-import { BadRequestException, Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Orders } from 'src/typeorm/entities/Order';
 import { Repository } from 'typeorm';
@@ -241,7 +241,7 @@ export class OrdersService {
                     where: { Order: { orderId: foundOrder.orderId } },
                     relations: ['Product']
                 })
-                
+
                 for (const item of releasedOrderItems) {
                     await transactionManager
                         .createQueryBuilder()
@@ -287,5 +287,40 @@ export class OrdersService {
 
         //im
 
+    }
+
+    async cancelOrder(orderId: string, userId: string) {
+        this.logger.log(`Canceling order number: ${orderId}`)
+        const foundOrder = await this.orderRepository.findOne({ where: { orderId }, relations: ['orderItems', 'orderItems.Product'] })
+        if (!foundOrder) throw new NotFoundException('Order not found')
+
+        const cancellableStatuses = ['PENDING', 'PENDING_PAYMENT', 'PROCESSING']
+        if (!cancellableStatuses.includes(foundOrder.status)) throw new ConflictException('Only orders with status PENDING, PENDING_PAYMENT, or PROCESSING can be cancelled')
+
+        await this.orderRepository.manager.transaction(async (transactionManager) => {
+            const savedOrders = await transactionManager.find(orderItems, {
+                where: { Order: { orderId } },
+                relations: ['Product']
+            })
+            this.logger.log(`Releasing inventory`)
+            for (const item of savedOrders) {
+                this.logger.log(`   Releasing product ${item.Product.productId}: ${item.quantity} units`)
+                await transactionManager
+                    .createQueryBuilder()
+                    .update(Product)
+                    .set({
+                        reservedQuantity: () => `reservedQuantity - ${item.quantity}`,
+                    })
+                    .where('productId = :productId', { productId: item.Product.productId })
+                    .execute()
+            }
+            this.logger.log(`Updating order status to canceled`)
+            await transactionManager.update(Orders,foundOrder.orderId,{status: orderStatus.CANCELLED})
+            this.logger.log(`Order cancelled successfully`)
+        })
+        return {
+            success: true,
+            message: 'Order cancelled successfully'
+        }
     }
 }
