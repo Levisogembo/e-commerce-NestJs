@@ -23,18 +23,18 @@ export class Images{
 
     @Column()
     @Field()
-    fileSize: string
+    fileSize: number
 
     @Column({nullable:true})
-    @Field()
+    @Field({nullable:true})
     filepath?: string
 
     @Column({nullable:true})
-    @Field()
+    @Field({nullable:true})
     s3FileUrl?: string //this url is the key of object/file in the s3 bucket
     
     @Column({nullable:true})
-    @Field()
+    @Field({nullable:true})
     s3Key?: string // a unique key to be used by clients for downloads, deletes or updates
 
     @Field(()=>Product)

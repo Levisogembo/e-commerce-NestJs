@@ -51,10 +51,10 @@ export class Product{
     @JoinColumn()
     category: Category
 
-    @Field(()=>subCategory)
-    @ManyToOne(()=>subCategory,(sub)=>sub.Product)
-    @JoinColumn()
-    subCategory: subCategory
+    // @Field(()=>subCategory)
+    // @ManyToOne(()=>subCategory,(sub)=>sub.Product)
+    // @JoinColumn()
+    // subCategory: subCategory
 
     @Field(()=>[orderItems])
     @ManyToMany(()=>orderItems,(order)=>order.Product)

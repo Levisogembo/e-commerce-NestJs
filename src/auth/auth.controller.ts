@@ -17,12 +17,14 @@ import { GoogleAuthGuard } from './guards/google.guard';
 import { Request, Response } from 'express';
 import { JwtService } from '@nestjs/jwt';
 import { resetPasswordDto } from './dtos/resetPassword.dto';
+import { ConfigService } from '@nestjs/config';
 
 @Controller('auth')
 export class AuthController {
   constructor(
     private jwtService: JwtService,
     private authService: AuthService,
+    private configService: ConfigService
   ) {}
 
   @Get('google/login')
@@ -33,8 +35,9 @@ export class AuthController {
   @UseGuards(GoogleAuthGuard)
   async handleRedirect(@Req() req: Request, @Res() res: Response) {
     const userToken = req.user;
+    const redirectUrl = this.configService.get<string>('GOOGLE_REDIRECT_URL')
     return res.redirect(
-      `http://localhost:3000/api/v1/auth/valid?token=${userToken}`,
+      `${redirectUrl}=${userToken}`,
     );
   }
 

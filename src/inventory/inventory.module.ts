@@ -11,9 +11,10 @@ import { subCategoryService } from './subCategory.service';
 import { productResolver } from './products.resolver';
 import { productService } from './product.service';
 import { RedisModule } from 'src/redis/redis.module';
+import { Images } from 'src/typeorm/entities/Images';
 
 @Module({
-  imports: [RedisModule,TypeOrmModule.forFeature([Category, User, subCategory, Product])],
+  imports: [RedisModule,TypeOrmModule.forFeature([Category, User, subCategory, Product, Images])],
   providers: [InventoryResolver, InventoryService, subCategoryResolver, subCategoryService, productResolver, productService]
 })
 export class InventoryModule {}
