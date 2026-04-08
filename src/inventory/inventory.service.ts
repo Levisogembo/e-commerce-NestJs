@@ -49,4 +49,16 @@ export class InventoryService {
         await this.redisInventoryService.storeItem(cacheKey, JSON.stringify(category), 3600)
         return category
     }
+
+    async getAllCategories() {
+        const cacheKey = `categories:All`
+        const cachedItem = await this.redisInventoryService.getItem(cacheKey)
+        if (cachedItem) {
+            return JSON.parse(cachedItem)
+        }
+        const category = await this.categoryRepository.find()
+        if (!category.length) throw new NotFoundException('Category not found')
+        await this.redisInventoryService.storeItem(cacheKey, JSON.stringify(category), 3600)
+        return category
+    }
 }

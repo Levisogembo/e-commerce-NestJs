@@ -35,10 +35,10 @@ type Images {
   fileName: String!
   uploadedAt: DateTime!
   mimeType: String!
-  fileSize: String!
-  filepath: String!
-  s3FileUrl: String!
-  s3Key: String!
+  fileSize: Float!
+  filepath: String
+  s3FileUrl: String
+  s3Key: String
   Product: Product!
 }
 
@@ -57,7 +57,6 @@ type Product {
   createdAt: DateTime!
   updatedAt: DateTime!
   category: Category!
-  subCategory: subCategory!
   OrderItems: [orderItems!]!
   images: [Images!]!
 }
@@ -176,6 +175,7 @@ type Query {
   getAllUser(page: Int!, limit: Int!): [User!]!
   getAddressData: Address!
   getCategory(categoryId: String!): Category!
+  getAllCategories: [Category!]!
   getOneSubCategory(subCategoryId: String!): subCategory!
   getOneProduct(productId: String!): Product!
   getManyProducts(page: Float!, limt: Float!): [Product!]!
@@ -277,7 +277,6 @@ input createProductInput {
   price: Int!
   quantity: Int!
   category: String!
-  subCategory: String!
 }
 
 input updateProductInput {
@@ -287,7 +286,6 @@ input updateProductInput {
   price: Int
   quantity: Int
   category: String
-  subCategory: String
 }
 
 input createOrderInput {

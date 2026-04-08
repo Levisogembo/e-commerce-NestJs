@@ -1,5 +1,5 @@
 import { Field, InputType, Int } from "@nestjs/graphql";
-import { IsNotEmpty, IsNumber, IsString, IsUUID } from "class-validator";
+import { IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID } from "class-validator";
 
 @InputType()
 export class createProductInput {
@@ -31,10 +31,28 @@ export class createProductInput {
     @Field()
     @IsNotEmpty()
     @IsUUID()
-    category: string
+    category: string   
+}
+
+@InputType()
+export class imageInput {
+    @Field()
+    @IsString()
+    originalName: string
 
     @Field()
-    @IsNotEmpty()
-    @IsUUID()
-    subCategory: string
+    @IsString()
+    fileName: string
+
+    @Field()
+    @IsString()
+    mimeType: string
+
+    @Field()
+    @IsString()
+    fileSize: number
+
+    @Field()
+    @IsString()
+    filePath: string
 }
