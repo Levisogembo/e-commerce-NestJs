@@ -31,6 +31,8 @@ export class productResolver {
         })
     }))
     async createProduct(@UploadedFile() file: Express.Multer.File, @Args("productPayload") productPayload: createProductInput) {
+        console.log(productPayload);
+        
         const fileName = file.filename
         const fileMetadata: imageInput = {
             originalName: file.originalname || file.filename,

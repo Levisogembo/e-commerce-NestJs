@@ -1,4 +1,5 @@
 import { Field, InputType, Int } from "@nestjs/graphql";
+import { Type } from "class-transformer";
 import { IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID } from "class-validator";
 
 @InputType()
@@ -29,6 +30,34 @@ export class createProductInput {
     quantity: number
 
     @Field()
+    @IsNotEmpty()
+    @IsUUID()
+    category: string   
+}
+
+export class createProductDto { 
+    @IsNotEmpty()
+    @IsString()
+    name: string
+
+    @IsNotEmpty()
+    @IsString()
+    description: string
+
+    @IsNotEmpty()
+    @IsString()
+    brand: string
+
+    @Type(()=> Number)
+    @IsNotEmpty()
+    @IsNumber()
+    price: number
+ 
+    @Type(()=> Number)
+    @IsNotEmpty()
+    @IsNumber()
+    quantity: number
+
     @IsNotEmpty()
     @IsUUID()
     category: string   
