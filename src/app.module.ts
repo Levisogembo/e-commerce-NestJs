@@ -48,7 +48,7 @@ import { MpesaModule } from './mpesa/mpesa.module';
       driver: ApolloDriver,
       autoSchemaFile: 'schema.gql',    
       debug: true,
-      playground: true
+      playground: true,
     }),
     AuthModule,
     UsersModule,

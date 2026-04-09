@@ -36,6 +36,7 @@ export class productService {
                 mimeType: fileMetadata.mimeType,
                 filepath: fileMetadata.filePath,
                 fileSize: fileMetadata.fileSize,
+                uploadedAt: new Date(),
                 Product: savedProduct
             })
             await transactionManager.save(newImage)
