@@ -54,9 +54,12 @@ type Product {
   brand: String!
   price: Int!
   quantity: Int!
+  reservedQuantity: Float!
+  soldQuantity: Float!
   createdAt: DateTime!
   updatedAt: DateTime!
   category: Category!
+  isFeatured: Boolean!
   OrderItems: [orderItems!]!
   images: [Images!]!
 }
@@ -132,6 +135,11 @@ type Role {
   user: [User!]!
 }
 
+type PaginatedProducts {
+  products: [Product!]!
+  total: Float!
+}
+
 type returnOrderResponse {
   orderId: String!
   total: Float!
@@ -178,7 +186,7 @@ type Query {
   getAllCategories: [Category!]!
   getOneSubCategory(subCategoryId: String!): subCategory!
   getOneProduct(productId: String!): Product!
-  getManyProducts(page: Float!, limt: Float!): [Product!]!
+  getManyProducts(page: Float!, limit: Float!): PaginatedProducts!
 }
 
 type Mutation {

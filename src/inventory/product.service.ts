@@ -79,12 +79,15 @@ export class productService {
 
     async getProducts(page: number, limit: number) {
         const offset = (page - 1) * limit
-        const foundProducts = await this.productRepository.find({
+        const [products, total] = await this.productRepository.findAndCount({
+            relations: ['images', 'category'],
+            select: { images: { imageId: true, filepath: true, fileName: true } },
+            order: { createdAt: 'DESC' },
             skip: offset,
             take: limit
         })
-        if (!foundProducts.length) throw new HttpException('No products at the moment', HttpStatus.NOT_FOUND)
-        return foundProducts
+        if (!products.length) throw new HttpException('No products at the moment', HttpStatus.NOT_FOUND)
+        return { products, total }
     }
 
     async deleteProduct(productId: string) {
