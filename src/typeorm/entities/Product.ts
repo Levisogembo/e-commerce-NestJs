@@ -32,9 +32,11 @@ export class Product{
     @Column()
     quantity: number
 
+    @Field()
     @Column({default:0})
     reservedQuantity: number
 
+    @Field()
     @Column({default:0})
     soldQuantity: number
 
@@ -50,6 +52,10 @@ export class Product{
     @ManyToOne(()=>Category,(cat)=>cat.Product)
     @JoinColumn()
     category: Category
+
+    @Field()
+    @Column({default:false})
+    isFeatured: Boolean
 
     // @Field(()=>subCategory)
     // @ManyToOne(()=>subCategory,(sub)=>sub.Product)

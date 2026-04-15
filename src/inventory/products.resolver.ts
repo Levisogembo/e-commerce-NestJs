@@ -1,4 +1,4 @@
-import { ParseIntPipe, ParseUUIDPipe, UploadedFile, UseGuards, UseInterceptors, UsePipes, ValidationPipe } from "@nestjs/common";
+import { Logger, ParseIntPipe, ParseUUIDPipe, UploadedFile, UseGuards, UseInterceptors, UsePipes, ValidationPipe } from "@nestjs/common";
 import { Args, Mutation, Resolver, Query } from "@nestjs/graphql";
 import { ROLES } from "src/auth/decorators/roles.decorator";
 import { Roles } from "src/roles/dtos/enums/roles.enum";
@@ -6,7 +6,7 @@ import { Product } from "src/typeorm/entities/Product";
 import { productService } from "./product.service";
 import { JwtGqlGuard } from "src/auth/guards/jwt.guard";
 import { RolesGuard } from "src/auth/guards/roles.guard";
-import { createProductInput, imageInput } from "./dtos/createProduct.input";
+import { createProductInput, imageInput, PaginatedProducts } from "./dtos/createProduct.input";
 import { updateProductInput } from "./dtos/updateProduct.input";
 import { FileInterceptor } from '@nestjs/platform-express'
 import { diskStorage } from "multer";
@@ -16,6 +16,7 @@ import * as fs from 'fs'
 @Resolver(() => Product)
 @UsePipes(new ValidationPipe)
 export class productResolver {
+    private logger = new Logger(productResolver.name)
     constructor(private productService: productService) { }
 
     @Mutation(() => Product)
@@ -55,8 +56,8 @@ export class productResolver {
         return await this.productService.getProductDetails(productId)
     }
 
-    @Query(() => [Product])
-    async getManyProducts(@Args("page", ParseIntPipe) page: number, @Args("limt", ParseIntPipe) limit: number) {
+    @Query(() => PaginatedProducts)
+    async getManyProducts(@Args("page", ParseIntPipe) page: number, @Args("limit", ParseIntPipe) limit: number) {
         return await this.productService.getProducts(page, limit)
     }
 

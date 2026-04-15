@@ -1,6 +1,7 @@
-import { Field, InputType, Int } from "@nestjs/graphql";
+import { Field, InputType, Int, ObjectType } from "@nestjs/graphql";
 import { Type } from "class-transformer";
 import { IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID } from "class-validator";
+import { Product } from "src/typeorm/entities/Product";
 
 @InputType()
 export class createProductInput {
@@ -84,4 +85,13 @@ export class imageInput {
     @Field()
     @IsString()
     filePath: string
+}
+
+@ObjectType()
+export class PaginatedProducts {
+    @Field(() => [Product])
+    products: Product[]
+
+    @Field(() => Number)
+    total: number
 }
