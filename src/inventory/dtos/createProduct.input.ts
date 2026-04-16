@@ -2,6 +2,7 @@ import { Field, InputType, Int, ObjectType } from "@nestjs/graphql";
 import { Type } from "class-transformer";
 import { IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID } from "class-validator";
 import { Product } from "src/typeorm/entities/Product";
+import  {PartialType} from '@nestjs/mapped-types'
 
 @InputType()
 export class createProductInput {
@@ -86,6 +87,8 @@ export class imageInput {
     @IsString()
     filePath: string
 }
+
+export class updateImage extends PartialType(imageInput){}
 
 @ObjectType()
 export class PaginatedProducts {
