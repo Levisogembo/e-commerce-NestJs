@@ -206,7 +206,6 @@ type Mutation {
   deleteSubCategory(subCategoryId: String!): String!
   createProduct(productPayload: createProductInput!): Product!
   deleteProduct(productId: String!): String!
-  updateProduct(productId: String!, updatePayload: updateProductInput!): Product!
   createNewOrder(orderPayload: createOrderInput!): returnOrderResponse!
   cancelOrder(orderId: String!): returnOrderCancelation!
   retryOrder(retryPayload: retryPaymentInput!): retryPaymentResponse!
@@ -285,15 +284,6 @@ input createProductInput {
   price: Int!
   quantity: Int!
   category: String!
-}
-
-input updateProductInput {
-  name: String
-  description: String
-  brand: String
-  price: Int
-  quantity: Int
-  category: String
 }
 
 input createOrderInput {

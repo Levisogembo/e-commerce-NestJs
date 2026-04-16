@@ -1,11 +1,11 @@
-import { ConflictException, HttpException, HttpStatus, Injectable, NotFoundException } from "@nestjs/common";
+import { ConflictException, HttpException, HttpStatus, Injectable, Logger, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Category } from "src/typeorm/entities/Categories";
 import { Product } from "src/typeorm/entities/Product";
 import { subCategory } from "src/typeorm/entities/subCategory";
 import { Repository } from "typeorm";
-import { createProductInput, imageInput } from "./dtos/createProduct.input";
-import { updateProductInput } from "./dtos/updateProduct.input";
+import { createProductInput, imageInput, updateImage } from "./dtos/createProduct.input";
+import { updateProductDto } from "./dtos/updateProduct.input";
 import { redisInventoryService } from "src/redis/redisInventory.service";
 import { plainToClass } from "class-transformer";
 import { Images } from "src/typeorm/entities/Images";
@@ -13,6 +13,7 @@ import { Images } from "src/typeorm/entities/Images";
 
 @Injectable()
 export class productService {
+    private logger = new Logger(productService.name)
     constructor(@InjectRepository(Product) private productRepository: Repository<Product>,
         @InjectRepository(Category) private categoryRepository: Repository<Category>,
         @InjectRepository(Images) private imagesRepository: Repository<Images>,
@@ -68,7 +69,7 @@ export class productService {
         const product = await this.productRepository.findOne(
             {
                 where: { productId },
-                relations: ['category', 'subCategory']
+                relations: ['category', 'images']
             })
         if (!product) throw new NotFoundException('Product not found')
 
@@ -96,35 +97,49 @@ export class productService {
         return "Product deleted successfully"
     }
 
-    async updateProduct(productId: string, { category, ...data }: updateProductInput) {
+    async updateProduct(productId: string, { category, ...data }: updateProductDto, fileMetadata: updateImage) {
         const cacheKey = `product:${productId}`
         const foundProduct = await this.productRepository.findOne({
             where: { productId },
-            relations: ['category']
+            relations: ['category', 'images']
         })
         if (!foundProduct) throw new NotFoundException('product not found')
         //delete existing product information from the cache
+        this.logger.log(`Deleting outdated product with cachekey ${cacheKey}`)
         await this.redisInventoryService.removeItem(cacheKey)
+        //update image table and product table if image is updated
+        let foundCategory: any = null
         if (category) {
-            const foundCategory = await this.categoryRepository.findOne({ where: { categoryId: category } })
+            foundCategory = await this.categoryRepository.findOne({ where: { categoryId: category } })
             if (!foundCategory) throw new NotFoundException('category not found')
-            // const foundSubCategory = await this.subCategoryRepository.findOne({
-            //     where: { subCategoryId: subCategory },
-            //     relations: ['category']
-            // })
-            // if (!foundSubCategory) throw new NotFoundException('subcategory not found')
-            //if (foundCategory.name !== foundSubCategory.category.name) throw new ConflictException(`${foundSubCategory.name} subcategory does not belong ${foundCategory.name} category`)
+        }
+        if (fileMetadata.fileName) {
+            this.logger.log(`Updating product ${productId}`)
+            await this.productRepository.manager.transaction(async (transactionManager) => {
+                await transactionManager.update(Product, productId, {
+                    updatedAt: new Date(),
+                    category: foundCategory ? foundCategory : foundProduct.category,
+                    ...data
+                })
+                const imageId = foundProduct.images[0].imageId
+                await transactionManager.update(Images, imageId, { ...fileMetadata })
+            })
+            this.logger.log(`Product updated successfully`)
+        } else {
+            this.logger.log('No file provided updating products table only')
             await this.productRepository.update(productId, {
                 ...data,
-                category: foundCategory,
-                //subCategory: foundSubCategory,
+                category: foundCategory ? foundCategory : foundProduct.category,
                 updatedAt: new Date()
             })
-            const updatedProduct = await this.productRepository.findOne({ where: { productId } })
-            //update cache with new product details
-            await this.redisInventoryService.storeItem(cacheKey, JSON.stringify(updatedProduct), 600)
-            return updatedProduct
+            this.logger.log(`Product ${productId} updated successfully`)
         }
+        const updatedProduct = await this.getProductDetails(productId)
+        //update cache with new product details
+        this.logger.log(`Updating redis cache with new product details`)
+        await this.redisInventoryService.storeItem(cacheKey, JSON.stringify(updatedProduct), 600)
+        this.logger.log(`Product updated successfully`)
+        return updatedProduct
         // else if (subCategory && !category) {
         //     const foundSubCategory = await this.subCategoryRepository.findOne({
         //         where: { subCategoryId: subCategory },
@@ -142,15 +157,6 @@ export class productService {
         //     await this.redisInventoryService.storeItem(cacheKey,JSON.stringify(updatedProduct),600)
         //     return updatedProduct
         // } 
-        else {
-            await this.productRepository.update(productId, {
-                ...data,
-                updatedAt: new Date()
-            })
-            const updatedProduct = await this.productRepository.findOne({ where: { productId } })
-            //update cache with new product details
-            await this.redisInventoryService.storeItem(cacheKey, JSON.stringify(updatedProduct), 600)
-            return updatedProduct
-        }
+
     }
 }

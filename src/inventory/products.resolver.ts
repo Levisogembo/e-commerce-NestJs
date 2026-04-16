@@ -7,7 +7,7 @@ import { productService } from "./product.service";
 import { JwtGqlGuard } from "src/auth/guards/jwt.guard";
 import { RolesGuard } from "src/auth/guards/roles.guard";
 import { createProductInput, imageInput, PaginatedProducts } from "./dtos/createProduct.input";
-import { updateProductInput } from "./dtos/updateProduct.input";
+//import { updateProductInput } from "./dtos/updateProduct.input";
 import { FileInterceptor } from '@nestjs/platform-express'
 import { diskStorage } from "multer";
 import * as fs from 'fs'
@@ -68,10 +68,10 @@ export class productResolver {
         return this.productService.deleteProduct(productId)
     }
 
-    @Mutation(() => Product)
-    @ROLES(Roles.ADMIN)
-    @UseGuards(JwtGqlGuard, RolesGuard)
-    async updateProduct(@Args("productId", ParseUUIDPipe) productId: string, @Args("updatePayload") updatePayload: updateProductInput) {
-        return await this.productService.updateProduct(productId, updatePayload)
-    }
+    // @Mutation(() => Product)
+    // @ROLES(Roles.ADMIN)
+    // @UseGuards(JwtGqlGuard, RolesGuard)
+    // async updateProduct(@Args("productId", ParseUUIDPipe) productId: string, @Args("updatePayload") updatePayload: updateProductInput) {
+    //     return await this.productService.updateProduct(productId, updatePayload)
+    // }
 }
