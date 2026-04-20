@@ -1,4 +1,4 @@
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Column, DeleteDateColumn, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { subCategory } from "./subCategory";
 import { Product } from "./Product";
 import { Field, ObjectType } from "@nestjs/graphql";
@@ -25,4 +25,7 @@ export class Category {
     @Field(()=>[Product])
     @OneToMany(()=>Product,(prod)=>prod.category)
     Product: Product[]
+
+    @DeleteDateColumn()
+    deletedAt: Date
 }

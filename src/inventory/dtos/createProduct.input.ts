@@ -85,7 +85,7 @@ export class imageInput {
 
     @Field()
     @IsString()
-    filePath: string
+    filepath: string
 }
 
 export class updateImage extends PartialType(imageInput){}

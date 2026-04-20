@@ -35,7 +35,7 @@ export class ProductController {
             fileName,
             mimeType: file.mimetype,
             fileSize: file.size,
-            filePath: file.path,
+            filepath: file.path,
         }
         try {
             return await this.productService.createNewProduct(productPayload, fileMetadata)
@@ -77,11 +77,11 @@ export class ProductController {
                 throw error
             }
             fileMetadata = {
-                originalName: file.originalname || file.filename,
+                //originalName: file.originalname || file.filename,
                 fileName: file.filename,
                 mimeType: file.mimetype,
                 fileSize: file.size,
-                filePath: file.path,
+                filepath: file.path,
             }
         }
         try {

@@ -10,6 +10,9 @@ import { redisInventoryService } from 'src/redis/redisInventory.service';
 
 @Injectable()
 export class InventoryService {
+    private readonly CATEGORY_OPTIONS_KEY = 'categories:options'
+    private readonly CATEGORY_PAGE_PATTERN = 'categories:page:'
+
     constructor(@InjectRepository(Category) private categoryRepository: Repository<Category>,
         private redisInventoryService: redisInventoryService) { }
 
@@ -19,7 +22,16 @@ export class InventoryService {
         let newCategory = await this.categoryRepository.create({ name, description })
         const savedCategory = await this.categoryRepository.save(newCategory)
         const cacheKey = `category:${savedCategory.categoryId}`
-        await this.redisInventoryService.storeItem(cacheKey, JSON.stringify(savedCategory), 3600)
+        const cachedOptions = await this.redisInventoryService.getItem(this.CATEGORY_OPTIONS_KEY)
+        if (cachedOptions) {
+            const parsed = JSON.parse(cachedOptions)
+            parsed.push(savedCategory)
+            //update redis with the new category created
+            await this.redisInventoryService.storeItem(this.CATEGORY_OPTIONS_KEY, JSON.stringify(parsed), 3600)
+        }
+        //delete paginated patterns
+        await this.redisInventoryService.deleteByPattern(this.CATEGORY_PAGE_PATTERN)        
+        //await this.redisInventoryService.storeItem(cacheKey, JSON.stringify(savedCategory), 3600)
         return savedCategory
     }
 
@@ -30,10 +42,20 @@ export class InventoryService {
         if (payload.name === existingCategory.name) throw new ConflictException('Category name already exists')
 
         await this.categoryRepository.update(categoryId, payload)
-        const cacheKey = `category:${categoryId}`
-        await this.redisInventoryService.removeItem(cacheKey)
         const updatedCategory = await this.categoryRepository.findOne({ where: { categoryId } })
-        await this.redisInventoryService.storeItem(cacheKey, JSON.stringify(updatedCategory), 3600)
+        const cacheKey = `category:${categoryId}`
+    
+        const cachedOptions = await this.redisInventoryService.getItem(this.CATEGORY_OPTIONS_KEY)
+        if (cachedOptions) {
+            const parsed = JSON.parse(cachedOptions)
+            const updatedCategories = parsed.map((cat) => {
+                cat.categoryId === categoryId ? updatedCategories : cat
+            })
+            await this.redisInventoryService.storeItem(this.CATEGORY_OPTIONS_KEY, JSON.stringify(updatedCategory), 3600)
+        }
+        //await this.redisInventoryService.removeItem(cacheKey)
+        await this.redisInventoryService.deleteByPattern(this.CATEGORY_PAGE_PATTERN)
+        //await this.redisInventoryService.storeItem(cacheKey, JSON.stringify(updatedCategory), 3600)
         return updatedCategory
         //return "Category Updated successfully"
     }
@@ -50,15 +72,58 @@ export class InventoryService {
         return category
     }
 
-    async getAllCategories() {
-        const cacheKey = `categories:All`
+    async getAllCategories(page: number, limit: number) {
+        const offset = (page - 1) * limit
+        const cacheKey = `${this.CATEGORY_PAGE_PATTERN}${page}:limit:${limit}`
         const cachedItem = await this.redisInventoryService.getItem(cacheKey)
         if (cachedItem) {
             return JSON.parse(cachedItem)
         }
-        const category = await this.categoryRepository.find()
+        const [category, total] = await this.categoryRepository.findAndCount({
+            skip: offset,
+            take: limit,
+        })
         if (!category.length) throw new NotFoundException('Category not found')
-        await this.redisInventoryService.storeItem(cacheKey, JSON.stringify(category), 3600)
-        return category
+        await this.redisInventoryService.storeItem(cacheKey, JSON.stringify({ category, total }), 3600)
+        return { category, total }
+    }
+
+    async getCategoryOptions() {
+        const cachedItem = await this.redisInventoryService.getItem(this.CATEGORY_OPTIONS_KEY)
+        if (cachedItem) return JSON.parse(cachedItem)
+
+        const categories = await this.categoryRepository.find({
+            select: ['categoryId', 'name'],  // only fetch what dropdown needs
+            order: { name: 'ASC' }
+        })
+
+        await this.redisInventoryService.storeItem(
+            this.CATEGORY_OPTIONS_KEY,
+            JSON.stringify(categories),
+            3600
+        )
+
+        return categories
+    }
+
+    async deleteCategory(categoryId: string) {
+        await this.categoryRepository.softDelete(categoryId)
+
+        // update options cache
+        const cachedOptions = await this.redisInventoryService.getItem(this.CATEGORY_OPTIONS_KEY)
+
+        if (cachedOptions) {
+            const parsed = JSON.parse(cachedOptions)
+            const filteredList = parsed.filter((cat) => cat.categoryId !== categoryId)  // remove deleted
+            await this.redisInventoryService.storeItem(
+                this.CATEGORY_OPTIONS_KEY,
+                JSON.stringify(filteredList),
+                3600
+            )
+        }
+
+        // invalidate paginated cache
+        await this.redisInventoryService.deleteByPattern(this.CATEGORY_PAGE_PATTERN)
+        return 'Category deleted successfully'
     }
 }

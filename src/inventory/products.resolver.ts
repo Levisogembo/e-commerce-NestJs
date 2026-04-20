@@ -40,7 +40,7 @@ export class productResolver {
             fileName,
             mimeType: file.mimetype,
             fileSize: file.size,
-            filePath: file.path,
+            filepath: file.path,
         }
         try {
             return await this.productService.createNewProduct(productPayload, fileMetadata)
@@ -54,6 +54,11 @@ export class productResolver {
     @Query(() => Product)
     async getOneProduct(@Args("productId", ParseUUIDPipe) productId: string) {
         return await this.productService.getProductDetails(productId)
+    }
+
+    @Mutation(()=>String)
+    async toggleProduct(@Args('productId',ParseUUIDPipe) productId:string){
+        return await this.productService.toggleProduct(productId)
     }
 
     @Query(() => PaginatedProducts)
