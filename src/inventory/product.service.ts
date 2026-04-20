@@ -35,7 +35,7 @@ export class productService {
             const newImage = await transactionManager.create(Images, {
                 fileName: fileMetadata.fileName,
                 mimeType: fileMetadata.mimeType,
-                filepath: fileMetadata.filePath,
+                filepath: fileMetadata.filepath,
                 fileSize: fileMetadata.fileSize,
                 uploadedAt: new Date(),
                 Product: savedProduct
@@ -93,7 +93,9 @@ export class productService {
 
     async deleteProduct(productId: string) {
         await this.productRepository.findOneByOrFail({ productId })
-        await this.productRepository.delete(productId)
+        //soft delete product
+        await this.productRepository.softDelete(productId)
+        //await this.productRepository.delete(productId)
         return "Product deleted successfully"
     }
 
@@ -114,7 +116,7 @@ export class productService {
             if (!foundCategory) throw new NotFoundException('category not found')
         }
         if (fileMetadata.fileName) {
-            this.logger.log(`Updating product ${productId}`)
+            this.logger.log(`Updating table with product ${productId}`)
             await this.productRepository.manager.transaction(async (transactionManager) => {
                 await transactionManager.update(Product, productId, {
                     updatedAt: new Date(),
@@ -159,4 +161,18 @@ export class productService {
         // } 
 
     }
+
+    async toggleProduct(productId: string) {
+        const product = await this.productRepository.findOne({
+          where: { productId },
+        });
+      
+        if (!product) throw new Error("Product not found");
+      
+        product.isFeatured = !product.isFeatured;
+      
+        await this.productRepository.save(product);
+      
+        return 'product toggled successfully';
+      }
 }

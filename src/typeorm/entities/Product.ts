@@ -1,4 +1,4 @@
-import { Column, Entity, In, JoinColumn, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Column, DeleteDateColumn, Entity, In, JoinColumn, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { Category } from "./Categories";
 import { subCategory } from "./subCategory";
 import { orderItems } from "./orderItems";
@@ -69,4 +69,7 @@ export class Product{
     @Field(()=>[Images])
     @OneToMany(()=>Images,(img)=>img.Product)
     images: Images[]
+
+    @DeleteDateColumn()
+    deletedAt: Date
 }

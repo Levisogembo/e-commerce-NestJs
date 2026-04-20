@@ -135,6 +135,11 @@ type Role {
   user: [User!]!
 }
 
+type PaginatedCategories {
+  category: [Category!]!
+  total: Float!
+}
+
 type PaginatedProducts {
   products: [Product!]!
   total: Float!
@@ -183,7 +188,8 @@ type Query {
   getAllUser(page: Int!, limit: Int!): [User!]!
   getAddressData: Address!
   getCategory(categoryId: String!): Category!
-  getAllCategories: [Category!]!
+  getAllCategories(page: Float!, limit: Float!): PaginatedCategories!
+  getCategoryOptions: [Category!]!
   getOneSubCategory(subCategoryId: String!): subCategory!
   getOneProduct(productId: String!): Product!
   getManyProducts(page: Float!, limit: Float!): PaginatedProducts!
@@ -201,10 +207,12 @@ type Mutation {
   createNewRole(roleInput: createRoleInput!): Role!
   createCategory(categoryInput: createCategoryInput!): Category!
   updateCategory(categoryId: String!, updateCategoryInput: updateCategoryInput!): Category!
+  deleteCategory(categoryId: String!): String!
   createSubCategory(subCategoryPayload: createSubCategoryInput!): subCategory!
   updateSubCategory(subCategoryId: String!, updateSubCategoryPayload: updateSubCategoryInput!): subCategory!
   deleteSubCategory(subCategoryId: String!): String!
   createProduct(productPayload: createProductInput!): Product!
+  toggleProduct(productId: String!): String!
   deleteProduct(productId: String!): String!
   createNewOrder(orderPayload: createOrderInput!): returnOrderResponse!
   cancelOrder(orderId: String!): returnOrderCancelation!
