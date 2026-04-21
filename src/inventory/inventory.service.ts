@@ -30,7 +30,7 @@ export class InventoryService {
             await this.redisInventoryService.storeItem(this.CATEGORY_OPTIONS_KEY, JSON.stringify(parsed), 3600)
         }
         //delete paginated patterns
-        await this.redisInventoryService.deleteByPattern(this.CATEGORY_PAGE_PATTERN)        
+        await this.redisInventoryService.deleteByPattern(this.CATEGORY_PAGE_PATTERN)
         //await this.redisInventoryService.storeItem(cacheKey, JSON.stringify(savedCategory), 3600)
         return savedCategory
     }
@@ -44,14 +44,18 @@ export class InventoryService {
         await this.categoryRepository.update(categoryId, payload)
         const updatedCategory = await this.categoryRepository.findOne({ where: { categoryId } })
         const cacheKey = `category:${categoryId}`
-    
+        //console.log('updated category', updatedCategory);
+
         const cachedOptions = await this.redisInventoryService.getItem(this.CATEGORY_OPTIONS_KEY)
         if (cachedOptions) {
             const parsed = JSON.parse(cachedOptions)
-            const updatedCategories = parsed.map((cat) => {
-                cat.categoryId === categoryId ? updatedCategories : cat
-            })
-            await this.redisInventoryService.storeItem(this.CATEGORY_OPTIONS_KEY, JSON.stringify(updatedCategory), 3600)
+            //remove null values from the cache in case of bugs
+            const cleaned = parsed.filter((cat) => cat !== null && cat !== undefined)
+
+            const updatedCategories = cleaned.map((cat) =>
+                cat.categoryId === categoryId ? updatedCategory : cat
+            )
+            await this.redisInventoryService.storeItem(this.CATEGORY_OPTIONS_KEY, JSON.stringify(updatedCategories), 3600)
         }
         //await this.redisInventoryService.removeItem(cacheKey)
         await this.redisInventoryService.deleteByPattern(this.CATEGORY_PAGE_PATTERN)
