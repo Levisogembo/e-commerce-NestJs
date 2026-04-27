@@ -58,7 +58,7 @@ type Product {
   soldQuantity: Float!
   createdAt: DateTime!
   updatedAt: DateTime!
-  category: Category!
+  category: Category
   isFeatured: Boolean!
   OrderItems: [orderItems!]!
   images: [Images!]!

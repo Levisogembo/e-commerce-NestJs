@@ -7,6 +7,7 @@ import { createCategoryInput } from './dtos/createCategory.input';
 import { updateCategoryInput } from './dtos/updateCategory.input';
 import { log } from 'util';
 import { redisInventoryService } from 'src/redis/redisInventory.service';
+import { Product } from 'src/typeorm/entities/Product';
 
 @Injectable()
 export class InventoryService {
@@ -14,6 +15,7 @@ export class InventoryService {
     private readonly CATEGORY_PAGE_PATTERN = 'categories:page:'
 
     constructor(@InjectRepository(Category) private categoryRepository: Repository<Category>,
+        @InjectRepository(Product) private productRepository: Repository<Product>,
         private redisInventoryService: redisInventoryService) { }
 
     async createNewCategory({ name, description }: createCategoryInput) {
@@ -111,6 +113,15 @@ export class InventoryService {
     }
 
     async deleteCategory(categoryId: string) {
+
+        //confirm if there are still products linked to this category 
+        const linkedProducts = await this.productRepository.count({
+            where: { category: { categoryId } },
+            withDeleted: true
+        })
+
+        if (linkedProducts > 0) throw new ConflictException(`Cannot delete this category - ${linkedProducts} product (s) still linked`)
+
         await this.categoryRepository.softDelete(categoryId)
 
         // update options cache

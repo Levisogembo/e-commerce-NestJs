@@ -91,6 +91,18 @@ export class productService {
         return { products, total }
     }
 
+    async getProductByCategory(categoryName: string): Promise<Product[] | { success: boolean, message: string, total: number }> {
+        const foundProducts = await this.productRepository.find({ where: { category: { name: categoryName } }, relations: ['images'] })
+        if (!foundProducts.length) {
+            return {
+                success: true,
+                message: "No products found",
+                total: 0
+            }
+        }
+        return foundProducts
+    }
+
     async deleteProduct(productId: string) {
         await this.productRepository.findOneByOrFail({ productId })
         //soft delete product
@@ -164,15 +176,15 @@ export class productService {
 
     async toggleProduct(productId: string) {
         const product = await this.productRepository.findOne({
-          where: { productId },
+            where: { productId },
         });
-      
+
         if (!product) throw new Error("Product not found");
-      
+
         product.isFeatured = !product.isFeatured;
-      
+
         await this.productRepository.save(product);
-      
+
         return 'product toggled successfully';
-      }
+    }
 }

@@ -70,7 +70,19 @@ export class productResolver {
     @ROLES(Roles.ADMIN)
     @UseGuards(JwtGqlGuard, RolesGuard)
     async deleteProduct(@Args("productId", ParseUUIDPipe) productId: string) {
-        return this.productService.deleteProduct(productId)
+        try {
+            const productDetails = await this.productService.getProductDetails(productId)
+            const filePath = productDetails.images[0].filepath
+            this.logger.log(`Deleting product image for ${productDetails.name}`)
+            if(filePath){
+                await fs.promises.unlink(filePath).catch((err)=>this.logger.error(err,'error deleting product image'))
+            }
+            this.logger.log('Image deleted successfully')
+            return this.productService.deleteProduct(productId)
+        } catch (error) {
+            throw error
+        }
+        
     }
 
     // @Mutation(() => Product)
