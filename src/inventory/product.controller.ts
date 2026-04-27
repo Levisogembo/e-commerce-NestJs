@@ -1,4 +1,4 @@
-import { Body, Controller, Logger, Param, ParseUUIDPipe, Patch, Post, UploadedFile, UseGuards, UseInterceptors, UsePipes, ValidationPipe } from "@nestjs/common";
+import { Body, Controller, Get, Logger, Param, ParseUUIDPipe, Patch, Post, UploadedFile, UseGuards, UseInterceptors, UsePipes, ValidationPipe } from "@nestjs/common";
 import { productService } from "./product.service";
 import { FileInterceptor } from '@nestjs/platform-express'
 import { diskStorage } from "multer";
@@ -21,7 +21,8 @@ export class ProductController {
         storage: diskStorage({
             destination: './images',
             filename: (req, file, callback) => {
-                const uniqueName = `${Date.now()}-${file.originalname}`
+                const sanitized = file.originalname.replace(/\s+/g, '-') // replace spaces with dashes
+                const uniqueName = `${Date.now()}-${sanitized}`
                 callback(null, uniqueName)
             }
         })
@@ -51,7 +52,8 @@ export class ProductController {
         storage: diskStorage({
             destination: './images',
             filename: (req, file, callback) => {
-                const uniqueName = `${Date.now()}-${file.originalname}`
+                const sanitized = file.originalname.replace(/\s+/g, '-') // replace spaces with dashes
+                const uniqueName = `${Date.now()}-${sanitized}`
                 callback(null, uniqueName)
             }
         })
@@ -59,7 +61,7 @@ export class ProductController {
     async updateProduct(@Param('productId', ParseUUIDPipe) productId: string, @UploadedFile() file: Express.Multer.File,
         @Body() updatePayload: updateProductDto) {
         //console.log(updatePayload);
-        
+
         let fileMetadata: updateImage = {}
         if (file) {
             this.logger.log(`New image uploading replacing the old image`)
@@ -85,12 +87,17 @@ export class ProductController {
             }
         }
         try {
-            return await this.productService.updateProduct(productId,updatePayload, fileMetadata)
+            return await this.productService.updateProduct(productId, updatePayload, fileMetadata)
         } catch (error) {
             if (file) await fs.promises.unlink(file.path).catch(() => {
                 this.logger.log('error unlinking file');
             });
             throw error
         }
+    }
+
+    @Get('category/:categoryName')
+    async getProductByCategory(@Param('categoryName') categoryName: string) {
+        return await this.productService.getProductByCategory(categoryName)
     }
 }

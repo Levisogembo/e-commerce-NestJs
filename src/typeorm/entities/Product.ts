@@ -48,7 +48,7 @@ export class Product{
     @Column()
     updatedAt: Date
 
-    @Field(()=>Category)
+    @Field(()=>Category,{nullable:true})
     @ManyToOne(()=>Category,(cat)=>cat.Product)
     @JoinColumn()
     category: Category
