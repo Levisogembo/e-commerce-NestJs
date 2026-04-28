@@ -24,6 +24,7 @@ import { InventoryModule } from './inventory/inventory.module';
 import { OrdersModule } from './orders/orders.module';
 import { QueuesModule } from './queues/queues.module';
 import { MpesaModule } from './mpesa/mpesa.module';
+import { Cart } from './typeorm/entities/Cart';
 
 @Module({
   imports: [
@@ -40,7 +41,7 @@ import { MpesaModule } from './mpesa/mpesa.module';
         database: configService.get<string>('DB_NAME'),
         username: configService.get<string>('DB_USER'),
         password: configService.get<string>('DB_PASSWORD'),
-        entities: [Address,Category,Images,Orders,orderItems,Payments,Product,Role,subCategory,User],
+        entities: [Address,Category,Images,Orders,orderItems,Payments,Product,Role,subCategory,User, Cart],
         synchronize: true,
       }),
     }),

@@ -11,6 +11,7 @@ import { OrdersRetryService } from './retries.orders.services';
 import { ROLES } from 'src/auth/decorators/roles.decorator';
 import { Roles } from 'src/roles/dtos/enums/roles.enum';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
+import { Cart } from 'src/typeorm/entities/Cart';
 
 @Resolver(()=>Orders)
 @UseGuards(JwtGqlGuard)
