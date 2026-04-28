@@ -9,12 +9,16 @@ import { orderItems } from 'src/typeorm/entities/orderItems';
 import { MpesaModule } from 'src/mpesa/mpesa.module';
 import { Payments } from 'src/typeorm/entities/Payments';
 import { OrdersRetryService } from './retries.orders.services';
+import { Cart } from 'src/typeorm/entities/Cart';
+import { CartService } from './cart.service';
+import { CartController } from './cart.controller';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Orders, Product, User, orderItems, Payments])
+    TypeOrmModule.forFeature([Orders, Product, User, orderItems, Payments, Cart])
   ],
-  providers: [OrdersService, OrdersResolver, OrdersRetryService],
+  controllers: [CartController],
+  providers: [OrdersService, OrdersResolver, OrdersRetryService, CartService],
   exports: [OrdersService]
 })
 export class OrdersModule {}

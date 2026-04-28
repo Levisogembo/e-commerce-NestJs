@@ -91,8 +91,8 @@ export class productService {
         return { products, total }
     }
 
-    async getProductByCategory(categoryName: string): Promise<Product[] | { success: boolean, message: string, total: number }> {
-        const foundProducts = await this.productRepository.find({ where: { category: { name: categoryName } }, relations: ['images'] })
+    async getProductByCategory(categoryName: string): Promise<{products: Product[], total: number} | { success: boolean, message: string, total: number }> {
+        const [foundProducts, total] = await this.productRepository.findAndCount({ where: { category: { name: categoryName } }, relations: ['images'] })
         if (!foundProducts.length) {
             return {
                 success: true,
@@ -100,7 +100,7 @@ export class productService {
                 total: 0
             }
         }
-        return foundProducts
+        return {products: foundProducts, total}
     }
 
     async deleteProduct(productId: string) {

@@ -31,5 +31,4 @@ export class orderItems{
     @ManyToOne(()=>Product,(prod)=>prod.OrderItems)
     @JoinColumn()
     Product: Product
-
 }

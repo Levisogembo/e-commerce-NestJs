@@ -18,7 +18,6 @@ export class OrdersService {
         @InjectRepository(Product) private productRepository: Repository<Product>,
         @InjectRepository(User) private userRepository: Repository<User>,
         @InjectRepository(orderItems) private orderItemsRepository: Repository<orderItems>,
-        @InjectRepository(Payments) private paymentsRepository: Repository<Payments>,
         private queueService: QueuesService) { }
 
     async createOrder(userId: string, payload: createOrderInput) {
