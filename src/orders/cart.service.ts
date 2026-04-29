@@ -19,7 +19,7 @@ export class CartService {
 
         if (!cart) {
             console.log('creating new items');
-            
+
             cart = this.cartRepository.create({
                 userId,
                 items: [],
@@ -70,11 +70,8 @@ export class CartService {
     /**
   * Update quantity of specific item
   */
-    async updateQuantity(
-        userId: string,
-        productId: string,
-        quantity: number,
-    ): Promise<Cart> {
+    async updateQuantity(user, productId: string, quantity: number,): Promise<Cart> {
+        const { userId } = user
         const cart = await this.getOrCreateCart(userId);
         let items = [...cart.items];
 
@@ -106,10 +103,8 @@ export class CartService {
         return this.cartRepository.save(cart);
     }
 
-    /**
-     * Remove item from cart
-     */
-    async removeFromCart(userId: string, productId: string): Promise<Cart> {
+    async removeFromCart(user, productId: string): Promise<Cart> {
+        const { userId } = user
         const cart = await this.getOrCreateCart(userId);
 
         const items = cart.items.filter(

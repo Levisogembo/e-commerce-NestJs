@@ -36,8 +36,6 @@ export class AuthResolver {
     @CurrentUser() userToken: string,
     @Args('loginInput') loginInput: localInput,
   ) {
-    
-    
     return userToken;
   }
 

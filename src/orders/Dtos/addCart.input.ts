@@ -1,6 +1,6 @@
 import { Field, InputType, Int } from "@nestjs/graphql";
 import { Type } from "class-transformer";
-import { IsBoolean, IsNotEmpty, IsNumber, IsString, IsUUID } from "class-validator";
+import { IsBoolean, IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID } from "class-validator";
 
 @InputType()
 export class addToCartDto {
@@ -21,4 +21,8 @@ export class addToCartDto {
     @IsNotEmpty()
     @IsNumber()
     price: number
+
+    @IsOptional()
+    @IsString()
+    fileName?: string
 }
