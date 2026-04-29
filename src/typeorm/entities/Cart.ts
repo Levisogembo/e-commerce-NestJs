@@ -17,6 +17,9 @@ export class CartItem {
 
   @Field(() => Int)
   quantity: number
+
+  @Field()
+  fileName?: string
 }
 
 @Entity()

@@ -47,7 +47,6 @@ export class OrdersService {
                 name: product.name
             })
 
-
         }
         const subtotal = productChecks.reduce(
             (sum, item) => sum + (item.requestedQty * item.unitPrice),
@@ -59,7 +58,7 @@ export class OrdersService {
         const savedOrder = await this.orderRepository.manager.transaction(
             async (transactionalEntityManager) => {
                 //create order
-                const order = await this.orderRepository.create({
+                const order = await transactionalEntityManager.create(Orders, {
                     total,
                     billingAddress: payload.billingAddress,
                     paymentMethod: payload.paymentMethod,
@@ -69,18 +68,18 @@ export class OrdersService {
                 const saved = await transactionalEntityManager.save(order)
 
                 //create order items
-                const orderItems: any = []
+                const orderItemsArray: any = []
                 for (const item of productChecks) {
-                    const newItems = await this.orderItemsRepository.create({
+                    const newItems = await transactionalEntityManager.create(orderItems, {
                         quantity: item.requestedQty,
                         unitPrice: item.unitPrice,
                         subTotal: item.requestedQty * item.unitPrice,
                         Order: saved,
                         Product: item.product
                     })
-                    orderItems.push(newItems)
+                    orderItemsArray.push(newItems)
                 }
-                await transactionalEntityManager.save(orderItems)
+                await transactionalEntityManager.save(orderItemsArray)
 
                 //reserve inventory
                 for (const item of productChecks) {
