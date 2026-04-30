@@ -25,6 +25,8 @@ import { OrdersModule } from './orders/orders.module';
 import { QueuesModule } from './queues/queues.module';
 import { MpesaModule } from './mpesa/mpesa.module';
 import { Cart } from './typeorm/entities/Cart';
+import { Coupon } from './typeorm/entities/Coupon';
+import { CouponUsage } from './typeorm/entities/CouponUsage';
 
 @Module({
   imports: [
@@ -41,13 +43,14 @@ import { Cart } from './typeorm/entities/Cart';
         database: configService.get<string>('DB_NAME'),
         username: configService.get<string>('DB_USER'),
         password: configService.get<string>('DB_PASSWORD'),
-        entities: [Address,Category,Images,Orders,orderItems,Payments,Product,Role,subCategory,User, Cart],
+        entities: [Address, Category, Images, Orders, orderItems,
+          Payments, Product, Role, subCategory, User, Cart, Coupon, CouponUsage],
         synchronize: true,
       }),
     }),
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
-      autoSchemaFile: 'schema.gql',    
+      autoSchemaFile: 'schema.gql',
       debug: true,
       playground: true,
     }),
@@ -64,4 +67,4 @@ import { Cart } from './typeorm/entities/Cart';
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule { }
