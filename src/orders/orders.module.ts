@@ -12,13 +12,17 @@ import { OrdersRetryService } from './retries.orders.services';
 import { Cart } from 'src/typeorm/entities/Cart';
 import { CartService } from './cart.service';
 import { CartController } from './cart.controller';
+import { Coupon } from 'src/typeorm/entities/Coupon';
+import { CouponUsage } from 'src/typeorm/entities/CouponUsage';
+import { CouponService } from './coupon.service';
+import { CouponController } from './coupon.controller';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Orders, Product, User, orderItems, Payments, Cart])
+    TypeOrmModule.forFeature([Orders, Product, User, orderItems, Payments, Cart, Coupon, CouponUsage])
   ],
-  controllers: [CartController],
-  providers: [OrdersService, OrdersResolver, OrdersRetryService, CartService],
+  controllers: [CartController, CouponController],
+  providers: [OrdersService, OrdersResolver, OrdersRetryService, CartService, CouponService],
   exports: [OrdersService]
 })
 export class OrdersModule {}

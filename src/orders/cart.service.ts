@@ -1,14 +1,17 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Cart } from "src/typeorm/entities/Cart";
-import { Repository } from "typeorm";
+import { In, Repository } from "typeorm";
 import { addToCartDto } from "./Dtos/addCart.input";
 import { jwtPayloadDto } from "src/auth/dtos/jwtPayload.dto";
+import { Product } from "src/typeorm/entities/Product";
+import { log } from "console";
 
 @Injectable()
 export class CartService {
     constructor(
-        @InjectRepository(Cart) private cartRepository: Repository<Cart>
+        @InjectRepository(Cart) private cartRepository: Repository<Cart>,
+        @InjectRepository(Product) private productRepository: Repository<Product>
     ) { }
 
     async getOrCreateCart(user): Promise<Cart> {
@@ -57,19 +60,16 @@ export class CartService {
         }
 
         // Recalculate totals
-        //const { totalItems, totalAmount } = this.calculateTotals(items);
+        const { totalItems, totalAmount } = this.calculateTotals(items);
 
         // Update cart
         cart.items = items;
-        // cart.totalItems = totalItems;
-        // cart.totalAmount = totalAmount;
+        cart.totalItems = totalItems;
+        cart.totalAmount = totalAmount;
 
         return this.cartRepository.save(cart);
     }
 
-    /**
-  * Update quantity of specific item
-  */
     async updateQuantity(user, productId: string, quantity: number,): Promise<Cart> {
         const { userId } = user
         const cart = await this.getOrCreateCart(userId);
@@ -120,9 +120,6 @@ export class CartService {
         return this.cartRepository.save(cart);
     }
 
-    /**
-     * Clear entire cart
-     */
     async clearCart(userId: string): Promise<Cart> {
         const cart = await this.getOrCreateCart(userId);
 
@@ -133,9 +130,6 @@ export class CartService {
         return this.cartRepository.save(cart);
     }
 
-    /**
-     * Calculate totals from items
-     */
     private calculateTotals(items): {
         totalItems: number;
         totalAmount: number;
@@ -147,6 +141,83 @@ export class CartService {
         );
 
         return { totalItems, totalAmount };
+    }
+
+    async getRecommendations(user): Promise<Product[]> {
+        const cart = await this.getOrCreateCart(user)
+
+        // fallback helper to avoid repetition
+        const getFeaturedFallback = async (limit: number) => {
+            return await this.productRepository.find({
+                where: { isFeatured: true },
+                relations: ['images', 'category'],
+                take: limit
+            })
+        }
+
+        // empty cart — return featured products
+        if (!cart.items.length) {
+            return await getFeaturedFallback(4)
+        }
+
+        const cartProductIds = cart.items.map(item => item.productId)
+
+        // fetch cart products to get their categories
+        const cartProducts = await this.productRepository.find({
+            where: { productId: In(cartProductIds) },
+            relations: ['category']
+        })
+
+        // extract unique category ids
+        const categoryIds = [
+            ...new Set(
+                cartProducts
+                    .map(p => p.category?.categoryId)
+                    .filter(Boolean)
+            )
+        ]
+
+        // no categories found — return featured fallback
+        if (!categoryIds.length) {
+            return await getFeaturedFallback(4)
+        }
+
+        // step 1 — get random product IDs using raw SQL safely without DISTINCT conflict
+        const randomIds = await this.productRepository
+            .createQueryBuilder('product')
+            .select('product.productId')
+            .leftJoin('product.category', 'category')
+            .where('category.categoryId IN (:...categoryIds)', { categoryIds })
+            .andWhere('product.productId NOT IN (:...cartProductIds)', { cartProductIds })
+            .andWhere('product.deletedAt IS NULL')
+            .orderBy('RANDOM()')
+            .limit(4)
+            .getRawMany()
+
+        const ids = randomIds.map(r => r.product_productId)
+
+        // no recommendations found — return featured fallback
+        if (!ids.length) {
+            return await getFeaturedFallback(4)
+        }
+
+        // step 2 — fetch full product details for those IDs
+        const recommendations = await this.productRepository.find({
+            where: { productId: In(ids) },
+            relations: ['images', 'category']
+        })
+
+        // fill remaining slots with featured products if less than 4
+        if (recommendations.length < 4) {
+            const featured = await getFeaturedFallback(4 - recommendations.length)
+
+            const featuredNotInRecommendations = featured.filter(
+                f => !recommendations.some(r => r.productId === f.productId)
+            )
+
+            return [...recommendations, ...featuredNotInRecommendations]
+        }    
+        return recommendations
     }
 }
 

@@ -30,15 +30,21 @@ export class CartController {
     @Delete('delete/:productId')
     async removeFromCart(@Req() userToken: Request, @Param("productId", ParseUUIDPipe) productId: string) {
         const user = userToken.user
-        const results = await this.cartService.removeFromCart(user,productId)
-        return results.items        
+        const results = await this.cartService.removeFromCart(user, productId)
+        return results.items
     }
 
     @Patch("update/:productId")
-    async updateQuantity (@Req() userToken: Request, @Param("productId", ParseUUIDPipe) productId: string, @Body() {quantity}: {quantity:number}) {
+    async updateQuantity(@Req() userToken: Request, @Param("productId", ParseUUIDPipe) productId: string, @Body() { quantity }: { quantity: number }) {
         const user = userToken.user
-        const results = await this.cartService.updateQuantity(user,productId,quantity)
+        const results = await this.cartService.updateQuantity(user, productId, quantity)
         return results.items
+    }
+
+    @Get('recommendations')
+    async getRecommendations(@Req() userToken: Request) {
+        const results = await this.cartService.getRecommendations(userToken.user)
+        return results
     }
 
 }

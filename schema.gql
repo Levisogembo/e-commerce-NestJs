@@ -181,6 +181,30 @@ type retryPaymentResponse {
   checkoutRequestId: String!
 }
 
+type CouponUsage {
+  usageId: String!
+  coupon: Coupon!
+  userId: String!
+  orderId: String
+  discountAmount: Int!
+  usedAt: DateTime!
+}
+
+type Coupon {
+  couponId: String!
+  code: String!
+  discountType: String!
+  discountValue: Int!
+  expirationDate: DateTime!
+  isActive: Boolean!
+  maxUses: Int
+  currentUses: Int!
+  minOrderAmount: Int
+  userId: String
+  usages: [CouponUsage!]
+  createdAt: DateTime!
+}
+
 type Query {
   sendVerificationEmail: String!
   hello: String!
