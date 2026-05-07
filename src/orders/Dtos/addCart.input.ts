@@ -20,7 +20,7 @@ export class addToCartDto {
     @Type(()=>Number)
     @IsNotEmpty()
     @IsNumber()
-    price: number
+    unitPrice: number
 
     @IsOptional()
     @IsString()

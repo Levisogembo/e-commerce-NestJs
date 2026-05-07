@@ -9,7 +9,7 @@
         <p><strong>Order ID:</strong> {{orderId}}</p>
         {{#if transactionId}}<p><strong>Transaction ID:</strong> {{transactionId}}</p>{{/if}}
         <p><strong>Date:</strong> {{date}}</p>
-        <p><strong>Total:</strong> ${{total}}</p>
+        <p><strong>Total:</strong> Ksh {{total}}</p>
       </div>
 
       <h3>Items Ordered</h3>
@@ -26,7 +26,7 @@
             <tr>
               <td style="padding: 8px; border-bottom: 1px solid #eee;">{{name}}</td>
               <td style="text-align: center; padding: 8px; border-bottom: 1px solid #eee;">{{quantity}}</td>
-              <td style="text-align: right; padding: 8px; border-bottom: 1px solid #eee;">${{price}}</td>
+              <td style="text-align: right; padding: 8px; border-bottom: 1px solid #eee;">Ksh {{price}}</td>
             </tr>
           {{/each}}
         </tbody>
@@ -38,7 +38,7 @@
       <p><strong>Order ID:</strong> {{orderId}}</p>
       {{#if transactionId}}<p><strong>Transaction ID:</strong> {{transactionId}}</p>{{/if}}
       <p><strong>Date:</strong> {{date}}</p>
-      <p><strong>Total:</strong> ${{total}}</p>
+      <p><strong>Total:</strong> Ksh {{total}}</p>
     </div>
 
     <h3>Items Ordered</h3>
@@ -55,7 +55,7 @@
           <tr>
             <td style="padding: 8px; border-bottom: 1px solid #eee;">{{productId}}</td>
             <td style="text-align: center; padding: 8px; border-bottom: 1px solid #eee;">{{quantity}}</td>
-            <td style="text-align: right; padding: 8px; border-bottom: 1px solid #eee;">${{price}}</td>
+            <td style="text-align: right; padding: 8px; border-bottom: 1px solid #eee;">Ksh {{price}}</td>
           </tr>
         {{/each}}
       </tbody>

@@ -46,4 +46,9 @@ export class createOrderInput {
     @Field(()=>String)
     @IsOptional()
     phoneNumber?: string
+
+    @Field(()=>String,{nullable:true})
+    @IsOptional()
+    @IsUUID()
+    couponId?: string
 }

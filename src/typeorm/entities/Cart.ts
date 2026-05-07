@@ -13,7 +13,7 @@ export class CartItem {
   description: string;
 
   @Field(() => Int)
-  price: number
+  unitPrice: number
 
   @Field(() => Int)
   quantity: number

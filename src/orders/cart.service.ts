@@ -136,7 +136,7 @@ export class CartService {
     } {
         const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
         const totalAmount = items.reduce(
-            (sum, item) => sum + item.price * item.quantity,
+            (sum, item) => sum + item.unitPrice * item.quantity,
             0,
         );
 
