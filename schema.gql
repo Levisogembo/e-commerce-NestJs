@@ -324,6 +324,7 @@ input createOrderInput {
   billingAddress: String!
   paymentMethod: String!
   phoneNumber: String!
+  couponId: String
 }
 
 input orderItemInput {
