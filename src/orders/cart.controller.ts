@@ -36,6 +36,8 @@ export class CartController {
 
     @Patch("update/:productId")
     async updateQuantity(@Req() userToken: Request, @Param("productId", ParseUUIDPipe) productId: string, @Body() { quantity }: { quantity: number }) {
+        //console.log(quantity);
+        
         const user = userToken.user
         const results = await this.cartService.updateQuantity(user, productId, quantity)
         return results.items

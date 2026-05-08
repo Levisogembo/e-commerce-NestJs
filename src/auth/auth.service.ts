@@ -13,6 +13,7 @@ import { JwtService } from '@nestjs/jwt';
 import { createGoogleUser } from './dtos/createGoogleUser.input';
 import { EmailsService } from 'src/emails/emails.service';
 import { RedisService } from 'src/redis/redis.service';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class AuthService {
@@ -20,7 +21,8 @@ export class AuthService {
     @InjectRepository(User) private userRepository: Repository<User>,
     private jwtService: JwtService, 
     private emailsService: EmailsService, 
-    private redisService: RedisService
+    private redisService: RedisService,
+    private configService: ConfigService
   ) {}
 
   async validateLocal(email: string, password: string) {
@@ -130,7 +132,7 @@ export class AuthService {
     //send password reset email
     const payload = {email,userId: foundEmail.userId}
     const token = await this.generateJwtToken(payload)
-    const resetUrl = `http://localhost:3000/api/v1/auth/reset?token=${token}`
+    const resetUrl = `${this.configService.get<string>("FRONTEND_RESET_URL")}?token=${token}`
     const res = await this.emailsService.sendPasswordReset(email,resetUrl,foundEmail.firstName)
     if(res.status !== 'success') throw new HttpException('Could not send password reset email',HttpStatus.INTERNAL_SERVER_ERROR)
     return {msg:`Password reset email sent successfully`}
