@@ -19,7 +19,7 @@ export class CartService {
         let cart = await this.cartRepository.findOne({
             where: { userId },
         });
-
+               
         if (!cart) {
             console.log('creating new items');
 
@@ -71,10 +71,9 @@ export class CartService {
     }
 
     async updateQuantity(user, productId: string, quantity: number,): Promise<Cart> {
-        const { userId } = user
-        const cart = await this.getOrCreateCart(userId);
+        const cart = await this.getOrCreateCart(user);
         let items = [...cart.items];
-
+        
         const itemIndex = items.findIndex(
             (item) => item.productId === productId,
         );
