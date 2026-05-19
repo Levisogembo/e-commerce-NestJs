@@ -287,6 +287,47 @@ export class OrdersService {
 
     }
 
+    async getPaymentStatus(orderId: string): Promise<{
+        status: 'pending' | 'success' | 'failed'
+        orderId: string | null
+        message: string
+    }> {
+        this.logger.log("Starting poll")
+        const order = await this.orderRepository.findOne({ where: { orderId } })
+        if (!order) {
+            this.logger.log("checkout request id not found")
+            return {
+                status: 'failed',
+                orderId: null,
+                message: 'order not found'
+            }
+        }
+        this.logger.log("Found id")
+        switch (order.status) {
+            case orderStatus.COMPLETED:
+                return {
+                    status: 'success',
+                    orderId: order.orderId,
+                    message: 'Payment confirmed successfully'
+                }
+            case orderStatus.PAYMENT_FAILED:
+                return {
+                    status: 'failed',
+                    orderId: order.orderId,
+                    message: 'Payment failed or was cancelled'
+                }
+            case orderStatus.PENDING_PAYMENT:
+            case orderStatus.PROCESSING:
+            case orderStatus.PENDING:
+            default:
+                return {
+                    status: 'pending',
+                    orderId: order.orderId,
+                    message: 'Waiting for payment confirmation'
+                }
+        }
+    }
+
     async cancelOrder(orderId: string, userId: string) {
         this.logger.log(`Canceling order number: ${orderId}`)
         const foundOrder = await this.orderRepository.findOne({ where: { orderId }, relations: ['orderItems', 'orderItems.Product'] })
@@ -313,7 +354,7 @@ export class OrdersService {
                     .execute()
             }
             this.logger.log(`Updating order status to canceled`)
-            await transactionManager.update(Orders,foundOrder.orderId,{status: orderStatus.CANCELLED})
+            await transactionManager.update(Orders, foundOrder.orderId, { status: orderStatus.CANCELLED })
             this.logger.log(`Order cancelled successfully`)
         })
         return {

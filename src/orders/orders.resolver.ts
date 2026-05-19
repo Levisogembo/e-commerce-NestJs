@@ -22,7 +22,9 @@ export class OrdersResolver {
     @Mutation(()=>returnOrderResponse)
     async createNewOrder(@CurrentUser() userToken: jwtPayloadDto, @Args('orderPayload') payload: createOrderInput){
         const userId = userToken.userId
-        return await this.orderService.createOrder(userId,payload)
+        const saved = await this.orderService.createOrder(userId,payload)
+        console.log(saved);
+        return saved
     }
 
     @Mutation(()=>returnOrderCancelation)
