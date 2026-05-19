@@ -1,4 +1,4 @@
-import { Body, Controller, HttpCode, HttpStatus, Logger, Post } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, Logger, Param, Post } from '@nestjs/common';
 import { OrdersService } from 'src/orders/orders.service';
 
 class CallbackMetadataItem {
@@ -62,6 +62,11 @@ export class MpesaController {
                 ResultDesc: 'Callback received',
             };
         }
+    }
+
+    @Get('status/:orderId')
+    async getPaymentStatus (@Param('orderId') orderId: string) {
+        return await this.ordersService.getPaymentStatus(orderId)
     }
 
     @Post('test')

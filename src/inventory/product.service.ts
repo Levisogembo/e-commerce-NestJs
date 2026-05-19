@@ -14,6 +14,9 @@ import { Images } from "src/typeorm/entities/Images";
 @Injectable()
 export class productService {
     private logger = new Logger(productService.name)
+    private readonly CATEGORY_OPTIONS_KEY = 'categories:options'
+    private readonly CATEGORY_PAGE_PATTERN = 'categories:page:'
+
     constructor(@InjectRepository(Product) private productRepository: Repository<Product>,
         @InjectRepository(Category) private categoryRepository: Repository<Category>,
         @InjectRepository(Images) private imagesRepository: Repository<Images>,
@@ -41,6 +44,8 @@ export class productService {
                 Product: savedProduct
             })
             await transactionManager.save(newImage)
+            await this.redisInventoryService.removeItem(this.CATEGORY_OPTIONS_KEY)
+            await this.redisInventoryService.deleteByPattern(this.CATEGORY_PAGE_PATTERN)
             return savedProduct
         })
         return newProduct
@@ -91,7 +96,7 @@ export class productService {
         return { products, total }
     }
 
-    async getProductByCategory(categoryName: string): Promise<{products: Product[], total: number} | { success: boolean, message: string, total: number }> {
+    async getProductByCategory(categoryName: string): Promise<{ products: Product[], total: number } | { success: boolean, message: string, total: number }> {
         const [foundProducts, total] = await this.productRepository.findAndCount({ where: { category: { name: categoryName } }, relations: ['images'] })
         if (!foundProducts.length) {
             return {
@@ -100,13 +105,15 @@ export class productService {
                 total: 0
             }
         }
-        return {products: foundProducts, total}
+        return { products: foundProducts, total }
     }
 
     async deleteProduct(productId: string) {
         await this.productRepository.findOneByOrFail({ productId })
         //soft delete product
         await this.productRepository.softDelete(productId)
+        await this.redisInventoryService.removeItem(this.CATEGORY_OPTIONS_KEY)
+        await this.redisInventoryService.deleteByPattern(this.CATEGORY_PAGE_PATTERN)
         //await this.productRepository.delete(productId)
         return "Product deleted successfully"
     }
@@ -152,6 +159,8 @@ export class productService {
         //update cache with new product details
         this.logger.log(`Updating redis cache with new product details`)
         await this.redisInventoryService.storeItem(cacheKey, JSON.stringify(updatedProduct), 600)
+        await this.redisInventoryService.removeItem(this.CATEGORY_OPTIONS_KEY)
+        await this.redisInventoryService.deleteByPattern(this.CATEGORY_PAGE_PATTERN)
         this.logger.log(`Product updated successfully`)
         return updatedProduct
         // else if (subCategory && !category) {

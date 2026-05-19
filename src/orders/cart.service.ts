@@ -119,8 +119,8 @@ export class CartService {
         return this.cartRepository.save(cart);
     }
 
-    async clearCart(userId: string): Promise<Cart> {
-        const cart = await this.getOrCreateCart(userId);
+    async clearCart(user): Promise<Cart> {
+        const cart = await this.getOrCreateCart(user);
 
         cart.items = [];
         cart.totalItems = 0;

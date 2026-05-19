@@ -3,6 +3,7 @@ import { Request } from "express";
 import { JwtAuthGuard } from "src/auth/guards/jwtRest.guard";
 import { CartService } from "./cart.service";
 import { addToCartDto } from "./Dtos/addCart.input";
+import { use } from "passport";
 
 @Controller('cart')
 @UseGuards(JwtAuthGuard)
@@ -47,6 +48,11 @@ export class CartController {
     async getRecommendations(@Req() userToken: Request) {
         const results = await this.cartService.getRecommendations(userToken.user)
         return results
+    }
+    
+    @Delete('clear')
+    async clearCart (@Req() userToken: Request){
+        return await this.cartService.clearCart(userToken.user)
     }
 
 }
