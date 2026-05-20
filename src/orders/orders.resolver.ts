@@ -23,7 +23,6 @@ export class OrdersResolver {
     async createNewOrder(@CurrentUser() userToken: jwtPayloadDto, @Args('orderPayload') payload: createOrderInput){
         const userId = userToken.userId
         const saved = await this.orderService.createOrder(userId,payload)
-        console.log(saved);
         return saved
     }
 

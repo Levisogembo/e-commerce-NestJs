@@ -10,6 +10,7 @@ import { QueuesService } from 'src/queues/queues.service';
 import { handleMpesaCallbackDto } from 'src/queues/Dtos/mpesaCallBack.dto';
 import { Payments } from 'src/typeorm/entities/Payments';
 import { orderStatus } from './Dtos/status.enum';
+import { CouponService } from './coupon.service';
 
 @Injectable()
 export class OrdersService {
@@ -18,6 +19,7 @@ export class OrdersService {
         @InjectRepository(Product) private productRepository: Repository<Product>,
         @InjectRepository(User) private userRepository: Repository<User>,
         @InjectRepository(orderItems) private orderItemsRepository: Repository<orderItems>,
+        private couponService: CouponService,
         private queueService: QueuesService) { }
 
     async createOrder(userId: string, payload: createOrderInput) {
@@ -63,6 +65,8 @@ export class OrdersService {
                     billingAddress: payload.billingAddress,
                     paymentMethod: payload.paymentMethod,
                     user,
+                    couponId: payload.couponId ?? null,
+                    discountAmount: payload.discountAmount ?? null,
                     createdAt: new Date()
                 })
                 const saved = await transactionalEntityManager.save(order)
@@ -205,6 +209,17 @@ export class OrdersService {
                     paidAt: new Date()
                 })
             })
+
+            //redeem coupon if user applied one
+            if (foundOrder.couponId && foundOrder.discountAmount) {
+                try {
+                    await this.couponService.redeemCoupon(foundOrder.couponId, foundOrder.user.userId,
+                        foundOrder.orderId, foundOrder.discountAmount)
+                    this.logger.log(`Coupon ${foundOrder.couponId} redeemed for order ${foundOrder.orderId}`)
+                } catch (error) {
+                    this.logger.error(`Failed to redeem coupon: ${error.message}`)
+                }
+            }
 
             //send success email to the queue for processing
             await this.queueService.addEmailJobData({

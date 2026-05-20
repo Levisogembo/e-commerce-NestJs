@@ -25,11 +25,11 @@ export class AuthController {
     private jwtService: JwtService,
     private authService: AuthService,
     private configService: ConfigService
-  ) {}
+  ) { }
 
   @Get('google/login')
   @UseGuards(GoogleAuthGuard)
-  async handleLogin() {}
+  async handleLogin() { }
 
   @Get('google/redirect')
   @UseGuards(GoogleAuthGuard)
@@ -61,9 +61,7 @@ export class AuthController {
 
   @Post('reset')
   @UsePipes(new ValidationPipe())
-  async resetPassword(
-    @Query('token') token: string,
-    @Body() { newPassword, confirmedPassword }: resetPasswordDto,
+  async resetPassword(@Body() { newPassword, confirmedPassword, token }: resetPasswordDto,
   ) {
     const isValidToken = await this.jwtService.verifyAsync(token);
     if (!isValidToken) throw new BadRequestException('Invalid token');

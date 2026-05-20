@@ -51,4 +51,9 @@ export class createOrderInput {
     @IsOptional()
     @IsUUID()
     couponId?: string
+
+    @Field(()=>Int,{nullable:true})
+    @IsOptional()
+    @IsNumber()
+    discountAmount?: number
 }
