@@ -102,6 +102,8 @@ type Orders {
   isRefunded: Boolean!
   user: User!
   payments: [Payments!]!
+  couponId: String
+  discountAmount: Int
 }
 
 type User {
@@ -145,42 +147,6 @@ type PaginatedProducts {
   total: Float!
 }
 
-type returnOrderResponse {
-  orderId: String!
-  total: Float!
-  status: String!
-  billingAddress: String!
-  paymentMethod: String!
-  mpesaCheckoutRequestId: String
-  transactionId: String
-  createdAt: DateTime!
-  paidAt: DateTime
-  refundedAt: DateTime
-  refundReason: String!
-  refundTransactionId: String!
-  orderItems: [orderItems!]!
-  isRefunded: Boolean!
-  user: User!
-  payments: [Payments!]!
-  message: String!
-}
-
-type returnReversalConfirmation {
-  success: String!
-  message: String!
-}
-
-type returnOrderCancelation {
-  success: String!
-  message: String!
-}
-
-type retryPaymentResponse {
-  success: Boolean!
-  message: String!
-  checkoutRequestId: String!
-}
-
 type CouponUsage {
   usageId: String!
   coupon: Coupon!
@@ -203,6 +169,44 @@ type Coupon {
   userId: String
   usages: [CouponUsage!]
   createdAt: DateTime!
+}
+
+type returnOrderResponse {
+  orderId: String!
+  total: Float!
+  status: String!
+  billingAddress: String!
+  paymentMethod: String!
+  mpesaCheckoutRequestId: String
+  transactionId: String
+  createdAt: DateTime!
+  paidAt: DateTime
+  refundedAt: DateTime
+  refundReason: String!
+  refundTransactionId: String!
+  orderItems: [orderItems!]!
+  isRefunded: Boolean!
+  user: User!
+  payments: [Payments!]!
+  couponId: String
+  discountAmount: Int
+  message: String!
+}
+
+type returnReversalConfirmation {
+  success: String!
+  message: String!
+}
+
+type returnOrderCancelation {
+  success: String!
+  message: String!
+}
+
+type retryPaymentResponse {
+  success: Boolean!
+  message: String!
+  checkoutRequestId: String!
 }
 
 type Query {
@@ -325,6 +329,7 @@ input createOrderInput {
   paymentMethod: String!
   phoneNumber: String!
   couponId: String
+  discountAmount: Int
 }
 
 input orderItemInput {

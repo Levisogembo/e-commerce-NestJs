@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString, Matches } from 'class-validator';
+import { IsNotEmpty, IsString, IsUUID, Matches } from 'class-validator';
 
 export class resetPasswordDto {
   @IsNotEmpty()
@@ -16,4 +16,8 @@ export class resetPasswordDto {
       'Password must contain at least 1 uppercase letter, 1 lowercase letter, 1 number, 1 special character, and be at least 8 characters long',
   })
   confirmedPassword: string;
+
+  @IsNotEmpty()
+  @IsString()
+  token: string
 }
