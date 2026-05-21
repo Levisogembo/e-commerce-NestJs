@@ -1,4 +1,4 @@
-import { Field, InputType, ObjectType } from "@nestjs/graphql";
+import { Field, InputType, Int, ObjectType } from "@nestjs/graphql";
 import { IsNumber, IsOptional, IsPhoneNumber, IsString, IsUUID } from "class-validator";
 import { Orders } from "src/typeorm/entities/Order";
 
@@ -61,4 +61,13 @@ export class refundOrderInput {
     @Field()
     @IsString()
     reason: string;
+}
+
+@ObjectType()
+export class paginatedOrders {
+    @Field(()=>[Orders])
+    orders: Orders[]
+
+    @Field(()=> Int)
+    total: number
 }

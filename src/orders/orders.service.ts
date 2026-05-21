@@ -296,10 +296,6 @@ export class OrdersService {
                 message: 'Payment failed'
             }
         }
-
-
-        //im
-
     }
 
     async getPaymentStatus(orderId: string): Promise<{
@@ -341,6 +337,15 @@ export class OrdersService {
                     message: 'Waiting for payment confirmation'
                 }
         }
+    }
+
+    async getAllOrders(page: number, limit: number){
+        const offset = (page - 1) * limit
+        const [orders, total] = await this.orderRepository.findAndCount({
+            skip: offset,
+            take: limit,
+        })
+        return { orders, total }
     }
 
     async cancelOrder(orderId: string, userId: string) {
