@@ -27,6 +27,7 @@ import { MpesaModule } from './mpesa/mpesa.module';
 import { Cart } from './typeorm/entities/Cart';
 import { Coupon } from './typeorm/entities/Coupon';
 import { CouponUsage } from './typeorm/entities/CouponUsage';
+import { AnalyticsModule } from './analytics/analytics.module';
 
 @Module({
   imports: [
@@ -62,7 +63,8 @@ import { CouponUsage } from './typeorm/entities/CouponUsage';
     InventoryModule,
     OrdersModule,
     QueuesModule,
-    MpesaModule
+    MpesaModule,
+    AnalyticsModule
   ],
   controllers: [AppController],
   providers: [AppService],
