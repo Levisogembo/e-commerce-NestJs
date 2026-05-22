@@ -4,6 +4,7 @@ import { Coupon, DiscountType } from "src/typeorm/entities/Coupon";
 import { CouponUsage } from "src/typeorm/entities/CouponUsage";
 import { IsNull, Repository } from "typeorm";
 import { CreateCouponDto } from "./Dtos/createCoupon.dto";
+import * as moment from 'moment'
 
 @Injectable()
 export class CouponService {
@@ -15,7 +16,9 @@ export class CouponService {
         const normalizedCode = couponPayload.code.toUpperCase().trim()
         const existingCoupon = await this.couponRepository.findOne({ where: { code: normalizedCode } })
         if (existingCoupon) throw new ConflictException(`Coupon code ${couponPayload.code} already exists`)
-
+        if (moment(couponPayload.expirationDate).isBefore(moment(), 'day')) {
+            throw new BadRequestException('Coupon expiration date cannot be in the past');
+        }
         const coupon = await this.couponRepository.create({
             ...couponPayload,
             code: couponPayload.code.toUpperCase().trim(),

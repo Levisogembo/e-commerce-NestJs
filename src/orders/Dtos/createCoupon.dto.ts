@@ -12,9 +12,9 @@ export class CreateCouponDto {
     @IsEnum(DiscountType)
     discountType: DiscountType
 
+    @Type(()=>Number)
     @IsNumber()
     @Min(1)
-    @Max(100)  // max 100% or Ksh 100,000 fixed
     discountValue: number
 
     @Type(() => Date)
@@ -22,16 +22,18 @@ export class CreateCouponDto {
     expirationDate: Date
 
     @IsOptional()
+    @Type(()=>Number)
     @IsNumber()
     @Min(1)
     maxUses?: number | null
 
     @IsOptional()
+    @Type(()=>Number)
     @IsNumber()
     @Min(0)
     minOrderAmount?: number | null
 
     @IsOptional()
-    @IsString()
+    @IsString() 
     userId?: string | null  // null = global, set = personal
 }
