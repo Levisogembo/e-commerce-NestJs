@@ -1,6 +1,6 @@
 import { Args, Context, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { User } from 'src/typeorm/entities/User';
-import { localInput } from './dtos/localLogin.input';
+import { AuthResponse, localInput } from './dtos/localLogin.input';
 import {
   BadRequestException,
   HttpException,
@@ -20,23 +20,25 @@ import { EmailsService } from 'src/emails/emails.service';
 import { RedisService } from 'src/redis/redis.service';
 import { logoutResponseInput } from './dtos/logoutResponse.input';
 import { timeStamp } from 'console';
+import { JwtService } from '@nestjs/jwt';
 
 @Resolver(() => User)
 export class AuthResolver {
   constructor(
     private authService: AuthService,
     private readonly emailService: EmailsService,
-    private readonly redisService: RedisService
-  ) {}
+    private readonly redisService: RedisService,
+    private readonly jwtService: JwtService
+  ) { }
 
-  @Mutation(() => String)
+  @Mutation(() => AuthResponse)
   @UseGuards(GqlLocalGuard)
   @UsePipes(new ValidationPipe())
   async login(
-    @CurrentUser() userToken: string,
+    @CurrentUser() tokens: { accessToken: string, refreshToken: string },
     @Args('loginInput') loginInput: localInput,
   ) {
-    return userToken;
+    return tokens;
   }
 
   @Mutation(() => String)
@@ -66,13 +68,29 @@ export class AuthResolver {
 
   @Mutation(() => logoutResponseInput)
   @UseGuards(JwtGqlGuard)
-  async logout(@Context() context) {
-    const authHeader = context.req.headers.authorization;
-    if (!authHeader) throw new UnauthorizedException('No auth header provided');
-    const extractedToken = authHeader.replace('Bearer ', '').trim();
-    if(!extractedToken) throw new UnauthorizedException('No token provided')
+  async logout(
+    @Context() context,
+    @Args('refreshToken', { nullable: true }) refreshToken?: string
+  ) {
+    const authHeader = context.req.headers.authorization
+    if (!authHeader) throw new UnauthorizedException('No auth header provided')
+
+    const extractedToken = authHeader.replace('Bearer ', '').trim()
+    if (!extractedToken) throw new UnauthorizedException('No token provided')
+
+    const decoded = this.jwtService.decode(extractedToken) as any
+    const userId = decoded?.userId
+
     await this.redisService.invalidateToken(extractedToken)
-    return {success:true,message:'You have logged out successfully', timeStamp: new Date()}
+    if (userId) {
+      await this.redisService.deleteRefreshToken(userId)
+    }
+
+    return {
+      success: true,
+      message: 'You have logged out successfully',
+      timeStamp: new Date()
+    }
   }
 
   @Query(() => String)
