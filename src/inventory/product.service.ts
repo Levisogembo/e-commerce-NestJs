@@ -196,4 +196,9 @@ export class productService {
 
         return 'product toggled successfully';
     }
+
+    async getFeaturedProducts () {
+        const products = await this.productRepository.find({where:{isFeatured:true},relations:['images']})
+        return products
+    }
 }

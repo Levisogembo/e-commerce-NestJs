@@ -8,6 +8,7 @@ import {
   Query,
   Req,
   Res,
+  UnauthorizedException,
   UseGuards,
   UsePipes,
   ValidationPipe,
@@ -34,11 +35,19 @@ export class AuthController {
   @Get('google/redirect')
   @UseGuards(GoogleAuthGuard)
   async handleRedirect(@Req() req: Request, @Res() res: Response) {
-    const userToken = req.user;
+    const userToken = req.user as unknown as { accessToken: string, refreshToken: string };
     const redirectUrl = this.configService.get<string>('GOOGLE_REDIRECT_URL')
     return res.redirect(
-      `${redirectUrl}=${userToken}`,
+      `${redirectUrl}=${userToken.accessToken}&refreshToken=${userToken.refreshToken}`,
     );
+  }
+
+  @Post('refresh')
+  async refresh(@Body() body: { refreshToken: string }) {
+    if (!body.refreshToken) {
+      throw new UnauthorizedException('Refresh token is required')
+    }
+    return await this.authService.refreshAccessToken(body.refreshToken)
   }
 
   @Get('valid')

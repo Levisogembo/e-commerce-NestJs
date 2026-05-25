@@ -2,6 +2,7 @@ import {
   HttpException,
   HttpStatus,
   Injectable,
+  Logger,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -17,13 +18,14 @@ import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class AuthService {
+  private logger = new Logger(AuthService.name)
   constructor(
     @InjectRepository(User) private userRepository: Repository<User>,
-    private jwtService: JwtService, 
-    private emailsService: EmailsService, 
+    private jwtService: JwtService,
+    private emailsService: EmailsService,
     private redisService: RedisService,
     private configService: ConfigService
-  ) {}
+  ) { }
 
   async validateLocal(email: string, password: string) {
     const foundUser = await this.userRepository.findOne({
@@ -37,13 +39,7 @@ export class AuthService {
         'Credentials do not match',
         HttpStatus.UNAUTHORIZED,
       );
-    const userId = foundUser.userId
-    const payload = { userId , email, role: foundUser.role };
-    const generatedToken = await this.generateJwtToken(payload);
-    const ttl = 60 * 60 //3600 seconds, 1h
-    await this.redisService.storeToken(generatedToken,userId, ttl)
-    console.log('storing token in redis');
-    return generatedToken
+    return await this.generateTokenPair(foundUser)
   }
 
   async validateGoogle(email, profile: createGoogleUser) {
@@ -51,18 +47,77 @@ export class AuthService {
     if (!foundUser) {
       return await this.createGoogleUser(email, profile);
     }
-    const userId = foundUser.userId
-    const payload = { userId, email, role: foundUser.role };
-    const generatedToken = await this.generateJwtToken(payload);
-    const ttl = 60 * 60 //3600 seconds, 1h
-    await this.redisService.storeToken(generatedToken,userId, ttl)
-    console.log('storing token in redis');
-    return generatedToken
+    return await this.generateTokenPair(foundUser)
   }
 
-  async generateJwtToken(payload) {
-    const jwtToken = await this.jwtService.signAsync(payload);
-    return jwtToken;
+  async generateTokenPair(user): Promise<{ accessToken: string, refreshToken: string }> {
+    const payload = {
+      userId: user.userId,
+      email: user.email,
+      role: user.role
+    }
+
+    const accessToken = await this.jwtService.signAsync(payload, {
+      expiresIn: '1h',
+      secret: this.configService.get('JWT_SECRET')
+    })
+
+    const refreshToken = await this.jwtService.signAsync(
+      { userId: user.userId },
+      {
+        expiresIn: '30d',
+        secret: this.configService.get('JWT_REFRESH_SECRET')
+      }
+    )
+
+    const ttl = 60 * 60  // 1 hour
+
+    // store both in Redis
+    await this.redisService.storeToken(accessToken, user.userId, ttl)
+    await this.redisService.storeRefreshToken(refreshToken, user.userId)
+
+    this.logger.log(`Token pair generated for user: ${user.userId}`)
+
+    return { accessToken, refreshToken }
+  }
+
+  async refreshAccessToken(refreshToken: string): Promise<{ accessToken: string }> {
+    try {
+
+      const decoded = await this.jwtService.verifyAsync(refreshToken, {
+        secret: this.configService.get('JWT_REFRESH_SECRET')
+      })
+
+      const userId = decoded.userId
+
+      const isValid = await this.redisService.validateRefreshToken(refreshToken, userId)
+      if (!isValid) {
+        throw new UnauthorizedException('Refresh token is invalid or expired')
+      }
+
+      const user = await this.userRepository.findOne({ where: { userId } })
+      if (!user) throw new UnauthorizedException('User not found')
+
+      // generate new access token
+      const newAccessToken = await this.jwtService.signAsync(
+        { userId: user.userId, email: user.email, role: user.role },
+        {
+          expiresIn: '1h',
+          secret: this.configService.get('JWT_SECRET')
+        }
+      )
+
+      // store new access token in Redis — replaces old one
+      await this.redisService.storeToken(newAccessToken, userId, 60 * 60)
+
+      this.logger.log(`Access token refreshed for user: ${userId}`)
+
+      return { accessToken: newAccessToken }
+
+    } catch (error) {
+      this.logger.error(`Token refresh failed: ${error.message}`)
+      throw new UnauthorizedException('Invalid or expired refresh token')
+    }
   }
 
   async createGoogleUser(email: string, profile: createGoogleUser) {
@@ -78,18 +133,12 @@ export class AuthService {
       createdAt: new Date(),
     });
     const savedUser = await this.userRepository.save(googleUser);
-    const userId = savedUser.userId
-    const payload = { userId, email, role: savedUser.role };
     //send welcome email to user
-    await this.emailsService.sendWelcomeMessage(email,profile.given_name)
-    const ttl = 60 * 60
-    const generatedToken = await this.generateJwtToken(payload);
-    await this.redisService.storeToken(generatedToken,userId, ttl)
-    console.log('storing token in redis');
-    return generatedToken
+    await this.emailsService.sendWelcomeMessage(email, profile.given_name)
+    return await this.generateTokenPair(savedUser)
   }
 
-  async changePassword(userId:string, currentPassword:string, newPassword:string) {
+  async changePassword(userId: string, currentPassword: string, newPassword: string) {
     const user = await this.userRepository.findOne({ where: { userId } });
     if (!user) throw new NotFoundException();
     const password = user?.password;
@@ -107,42 +156,49 @@ export class AuthService {
     }
   }
 
-  async sendEmailVerification(userId:string){
-    const user = await this.userRepository.findOne({where:{userId}})
-    if(!user) throw new NotFoundException()
+  async sendEmailVerification(userId: string) {
+    const user = await this.userRepository.findOne({ where: { userId } })
+    if (!user) throw new NotFoundException()
     const email = user?.email
-    const payload = {email,userId}
-    const token = await this.generateJwtToken(payload)
-    const verificationUrl = `http://localhost:3000/api/v1/auth/verify?token=${token}`
-    const res = await this.emailsService.sendVerificationEmail(email,verificationUrl,user.firstName)
-    if(res.status !== 'success') throw new HttpException('could not send verification email',HttpStatus.INTERNAL_SERVER_ERROR)
+    const payload = { email, userId }
+    const token = await this.jwtService.signAsync(payload, {
+      expiresIn: '1d',
+      secret: this.configService.get('JWT_SECRET')
+    })
+    const verificationUrl = `${this.configService.get<string>("BACKEND_URL")}/api/v1/auth/verify?token=${token}`
+    const res = await this.emailsService.sendVerificationEmail(email, verificationUrl, user.firstName)
+    if (res.status !== 'success') throw new HttpException('could not send verification email', HttpStatus.INTERNAL_SERVER_ERROR)
     return `Verification email sent to ${email}`
   }
 
-  async verifyUser(userId: string){
-    const user = await this.userRepository.findOne({where:{userId}})
-    if(!user) throw new NotFoundException()
-    await this.userRepository.update(userId,{isVerified:true})
+  async verifyUser(userId: string) {
+    const user = await this.userRepository.findOne({ where: { userId } })
+    if (!user) throw new NotFoundException()
+    await this.userRepository.update(userId, { isVerified: true })
     return `Email verified successfully`
   }
 
-  async forgotPassword(email:string){
-    const foundEmail = await this.userRepository.findOne({where:{email}})
-    if(!foundEmail) throw new NotFoundException()
+  async forgotPassword(email: string) {
+    const foundEmail = await this.userRepository.findOne({ where: { email } })
+    if (!foundEmail) throw new NotFoundException()
     //send password reset email
-    const payload = {email,userId: foundEmail.userId}
-    const token = await this.generateJwtToken(payload)
+    const payload = { email, userId: foundEmail.userId }
+    const token = await this.jwtService.signAsync(payload, {
+      expiresIn: '1d',
+      secret: this.configService.get('JWT_SECRET')
+    })
     const resetUrl = `${this.configService.get<string>("FRONTEND_RESET_URL")}?token=${token}`
-    const res = await this.emailsService.sendPasswordReset(email,resetUrl,foundEmail.firstName)
-    if(res.status !== 'success') throw new HttpException('Could not send password reset email',HttpStatus.INTERNAL_SERVER_ERROR)
-    return {msg:`Password reset email sent successfully`}
+    const res = await this.emailsService.sendPasswordReset(email, resetUrl, foundEmail.firstName)
+    if (res.status !== 'success') throw new HttpException('Could not send password reset email', HttpStatus.INTERNAL_SERVER_ERROR)
+    return { msg: `Password reset email sent successfully` }
   }
 
-  async resetPassword(userId:string,newPassword:string){
-      const findUser = await this.userRepository.findOne({where:{userId}})
-      if(!findUser) throw new NotFoundException()
-      const hashedPassword = await argon.hash(newPassword)
-      await this.userRepository.update(userId,{password:hashedPassword})
-      return {msg:'Password reset successfully'}
+  async resetPassword(userId: string, newPassword: string) {
+    const findUser = await this.userRepository.findOne({ where: { userId } })
+    if (!findUser) throw new NotFoundException()
+    const hashedPassword = await argon.hash(newPassword)
+    await this.userRepository.update(userId, { password: hashedPassword })
+    return { msg: 'Password reset successfully' }
   }
+
 }

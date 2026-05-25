@@ -7,6 +7,8 @@ import { ROLES } from "src/auth/decorators/roles.decorator";
 import { Roles } from "src/roles/dtos/enums/roles.enum";
 import { createProductDto, imageInput, updateImage } from "./dtos/createProduct.input";
 import { updateProductDto } from "./dtos/updateProduct.input";
+import { JwtAuthGuard } from "src/auth/guards/jwtRest.guard";
+import { RestRolesGuard } from "src/auth/guards/roles.rest.guard";
 
 @Controller('product')
 @UsePipes(new ValidationPipe())
@@ -16,7 +18,7 @@ export class ProductController {
 
     @Post('create')
     @ROLES(Roles.ADMIN)
-    @UseGuards()
+    @UseGuards(JwtAuthGuard,RestRolesGuard)
     @UseInterceptors(FileInterceptor('file', {
         storage: diskStorage({
             destination: './images',
@@ -48,6 +50,8 @@ export class ProductController {
     }
 
     @Patch('update/:productId')
+    @ROLES(Roles.ADMIN)
+    @UseGuards(JwtAuthGuard,RestRolesGuard)
     @UseInterceptors(FileInterceptor('file', {
         storage: diskStorage({
             destination: './images',
@@ -99,5 +103,10 @@ export class ProductController {
     @Get('category/:categoryName')
     async getProductByCategory(@Param('categoryName') categoryName: string) {
         return await this.productService.getProductByCategory(categoryName)
+    }
+
+    @Get('featured')
+    async getFeaturedProducts () {
+        return await this.productService.getFeaturedProducts()
     }
 }
