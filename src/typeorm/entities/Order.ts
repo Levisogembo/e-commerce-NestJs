@@ -12,6 +12,14 @@ export class Orders {
     @PrimaryGeneratedColumn('uuid')
     orderId: string
 
+    @Field({ nullable: true })
+    @Column({
+        type: 'varchar',
+        unique: true,
+        nullable: true
+    })
+    orderNumber?: string;
+
     @Field()
     @Column()
     total: number
@@ -73,7 +81,7 @@ export class Orders {
     @OneToMany(() => Payments, (pay) => pay.order)
     payments: Payments[]
 
-    @Field(()=>String, { nullable: true })
+    @Field(() => String, { nullable: true })
     @Column({ type: 'varchar', nullable: true, default: null })
     couponId?: string | null
 

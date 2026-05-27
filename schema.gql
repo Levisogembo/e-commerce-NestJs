@@ -87,6 +87,7 @@ type Payments {
 
 type Orders {
   orderId: String!
+  orderNumber: String
   total: Float!
   status: String!
   billingAddress: String!
@@ -178,6 +179,7 @@ type Coupon {
 
 type returnOrderResponse {
   orderId: String!
+  orderNumber: String
   total: Float!
   status: String!
   billingAddress: String!
@@ -214,6 +216,11 @@ type retryPaymentResponse {
   checkoutRequestId: String!
 }
 
+type paginatedOrders {
+  orders: [Orders!]!
+  total: Int!
+}
+
 type Query {
   sendVerificationEmail: String!
   hello: String!
@@ -226,6 +233,7 @@ type Query {
   getOneSubCategory(subCategoryId: String!): subCategory!
   getOneProduct(productId: String!): Product!
   getManyProducts(page: Float!, limit: Float!): PaginatedProducts!
+  getAllOrders(page: Int!, limit: Int!): paginatedOrders!
 }
 
 type Mutation {

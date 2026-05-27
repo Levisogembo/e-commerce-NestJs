@@ -6,7 +6,7 @@
     {{#with data}}
       <div style="background: #ffebee; padding: 15px; border-radius: 8px; margin: 20px 0;">
         <h3 style="margin-top: 0; color: #c62828;">Order Details</h3>
-        <p><strong>Order ID:</strong> {{orderId}}</p>
+        <p><strong>Order Number:</strong> {{orderNumber}}</p>
         <p><strong>Amount:</strong> Ksh {{total}}</p>
         <p><strong>Date:</strong> {{date}}</p>
         {{#if errorMessage}}<p><strong>Error:</strong> {{errorMessage}}</p>{{/if}}
@@ -35,7 +35,7 @@
   {{else}}
     <div style="background: #ffebee; padding: 15px; border-radius: 8px; margin: 20px 0;">
       <h3 style="margin-top: 0; color: #c62828;">Order Details</h3>
-      <p><strong>Order ID:</strong> {{orderId}}</p>
+      <p><strong>Order Number:</strong> {{orderNumber}}</p>
       <p><strong>Amount:</strong> Ksh {{total}}</p>
       <p><strong>Date:</strong> {{date}}</p>
       {{#if errorMessage}}<p><strong>Error:</strong> {{errorMessage}}</p>{{/if}}
