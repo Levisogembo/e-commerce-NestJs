@@ -11,6 +11,7 @@ import { handleMpesaCallbackDto } from 'src/queues/Dtos/mpesaCallBack.dto';
 import { Payments } from 'src/typeorm/entities/Payments';
 import { orderStatus } from './Dtos/status.enum';
 import { CouponService } from './coupon.service';
+import { generateOrderNumber } from 'src/utils/generateOrder';
 
 @Injectable()
 export class OrdersService {
@@ -67,7 +68,8 @@ export class OrdersService {
                     user,
                     couponId: payload.couponId ?? null,
                     discountAmount: payload.discountAmount ?? null,
-                    createdAt: new Date()
+                    createdAt: new Date(),
+                    orderNumber: generateOrderNumber()
                 })
                 const saved = await transactionalEntityManager.save(order)
 
@@ -224,10 +226,11 @@ export class OrdersService {
             //send success email to the queue for processing
             await this.queueService.addEmailJobData({
                 to: foundUser.email,
-                subject: `Order ${foundOrder.orderId} Confirmed!`,
+                subject: `Order ${foundOrder.orderNumber} Confirmed!`,
                 template: 'orderSuccess',
                 data: {
                     orderId: foundOrder.orderId,
+                    orderNumber: foundOrder.orderNumber,
                     total: foundOrder.total,
                     items: foundOrder.orderItems.map(item => ({
                         productId: item.Product.productId,
@@ -275,11 +278,12 @@ export class OrdersService {
             //send failed email notification
             await this.queueService.addEmailJobData({
                 to: foundUser.email,
-                subject: `Payment failed for order ${foundOrder.orderId}!`,
+                subject: `Payment failed for order ${foundOrder.orderNumber}!`,
                 template: 'orderFailure',
                 data: {
                     orderId: foundOrder.orderId,
                     total: foundOrder.total,
+                    orderNumber: foundOrder.orderNumber,
                     items: foundOrder.orderItems.map(item => ({
                         productId: item.Product.productId,
                         quantity: item.quantity,
@@ -301,6 +305,7 @@ export class OrdersService {
     async getPaymentStatus(orderId: string): Promise<{
         status: 'pending' | 'success' | 'failed'
         orderId: string | null
+        orderNumber: string | undefined
         message: string
     }> {
         this.logger.log("Starting poll")
@@ -310,6 +315,7 @@ export class OrdersService {
             return {
                 status: 'failed',
                 orderId: null,
+                orderNumber: undefined,
                 message: 'order not found'
             }
         }
@@ -319,12 +325,14 @@ export class OrdersService {
                 return {
                     status: 'success',
                     orderId: order.orderId,
+                    orderNumber: order.orderNumber,
                     message: 'Payment confirmed successfully'
                 }
             case orderStatus.PAYMENT_FAILED:
                 return {
                     status: 'failed',
                     orderId: order.orderId,
+                    orderNumber: order.orderNumber,
                     message: 'Payment failed or was cancelled'
                 }
             case orderStatus.PENDING_PAYMENT:
@@ -334,6 +342,7 @@ export class OrdersService {
                 return {
                     status: 'pending',
                     orderId: order.orderId,
+                    orderNumber: order.orderNumber,
                     message: 'Waiting for payment confirmation'
                 }
         }
@@ -344,6 +353,7 @@ export class OrdersService {
         const [orders, total] = await this.orderRepository.findAndCount({
             skip: offset,
             take: limit,
+            order: {createdAt: 'DESC'}
         })
         return { orders, total }
     }

@@ -1,8 +1,8 @@
-import { Args, Int, Mutation, Resolver } from '@nestjs/graphql';
+import { Args, Int, Mutation, Resolver, Query } from '@nestjs/graphql';
 import { CurrentUser } from 'src/auth/decorators/userToken.decorator';
 import { Orders } from 'src/typeorm/entities/Order';
 import { createOrderInput } from './Dtos/createOrder.input';
-import { ParseIntPipe, ParseUUIDPipe, Query, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
+import { ParseIntPipe, ParseUUIDPipe, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
 import { JwtGqlGuard } from 'src/auth/guards/jwt.guard';
 import { jwtPayloadDto } from 'src/auth/dtos/jwtPayload.dto';
 import { paginatedOrders, refundOrderInput, retryPaymentInput, retryPaymentResponse, returnOrderCancelation, returnOrderResponse, returnReversalConfirmation } from './Dtos/returnOrder.input';
@@ -27,14 +27,13 @@ export class OrdersResolver {
         return saved
     }
 
-    // @Query(() => paginatedOrders)
-    // async getAllOrders(
-    //     @Args('page', { type: () => Int }, ParseIntPipe) page: number,
-    //     @Args('limit', { type: () => Int }, ParseIntPipe) limit: number,
-    // ) {
-    //     return this.orderService.getAllOrders(page, limit);
-    // }
-
+    @Query(() => paginatedOrders)
+    async getAllOrders(
+        @Args('page', { type: () => Int }, ParseIntPipe) page: number,
+        @Args('limit', { type: () => Int }, ParseIntPipe) limit: number,
+    ) {
+        return this.orderService.getAllOrders(page, limit);
+    }
 
     @Mutation(() => returnOrderCancelation)
     async cancelOrder(@CurrentUser() userToken: jwtPayloadDto, @Args('orderId', ParseUUIDPipe) orderId: string) {
