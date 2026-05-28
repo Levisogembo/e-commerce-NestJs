@@ -351,6 +351,7 @@ export class OrdersService {
     async getAllOrders(page: number, limit: number){
         const offset = (page - 1) * limit
         const [orders, total] = await this.orderRepository.findAndCount({
+            relations: ['user'],
             skip: offset,
             take: limit,
             order: {createdAt: 'DESC'}

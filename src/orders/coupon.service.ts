@@ -3,7 +3,7 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { Coupon, DiscountType } from "src/typeorm/entities/Coupon";
 import { CouponUsage } from "src/typeorm/entities/CouponUsage";
 import { IsNull, Repository } from "typeorm";
-import { CreateCouponDto } from "./Dtos/createCoupon.dto";
+import { CreateCouponDto, UpdateCouponDto } from "./Dtos/createCoupon.dto";
 import * as moment from 'moment'
 
 @Injectable()
@@ -28,10 +28,6 @@ export class CouponService {
         return await this.couponRepository.save(coupon)
     }
 
-    async getAllCoupons(): Promise<Coupon[]> {
-        return await this.couponRepository.find({ relations: ['usages'], order: { createdAt: 'DESC' } })
-    }
-
     async deActivateCoupon(couponId: string): Promise<Coupon> {
         const coupon = await this.couponRepository.findOne({ where: { couponId } })
         if (!coupon) throw new NotFoundException('Coupon not found')
@@ -44,7 +40,7 @@ export class CouponService {
         const coupon = await this.couponRepository.findOne({ where: { couponId } })
         if (!coupon) throw new NotFoundException('Coupon not found')
 
-        coupon.isActive = true
+        coupon.isActive = !coupon.isActive
         return await this.couponRepository.save(coupon)
     }
 
@@ -116,6 +112,28 @@ export class CouponService {
             discountAmount,
             finalAmount
         }
+    }
+
+    async getAllCoupons(page: number, limit: number): Promise<{ coupons: Coupon[], total: number}>{
+        const offset = (page - 1) * limit
+        const [coupons, total] = await this.couponRepository.findAndCount({
+            relations: ['usages'],
+            skip: offset,
+            take: limit,
+            order: {createdAt: 'DESC'}
+        })
+        return { coupons, total }
+    }
+
+    async updateCoupon (couponId: string, payload: UpdateCouponDto): Promise<Coupon | null> {
+        const foundCoupon = await this.couponRepository.findOne({where: {couponId}})
+        if(!foundCoupon) throw new NotFoundException()
+        if(payload.code){
+            const code = await this.couponRepository.findOne({where:{code: payload.code}})
+            if(code) throw new ConflictException('Coupon code already exists')
+        }
+        await this.couponRepository.update(couponId,payload)
+        return await this.couponRepository.findOne({where:{couponId}})
     }
 
     async redeemCoupon(couponId: string, userId: string, orderId: string, discountAmount: number): Promise<void> {
