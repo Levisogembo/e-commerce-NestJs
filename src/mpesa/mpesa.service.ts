@@ -202,28 +202,23 @@ export class MpesaService {
         try {
             const token = await this.getAccessToken()
             const config = getMpesaConfig(this.configService);
-            const environment = this.configService.get('MPESA_ENVIRONMENT', 'sandbox');
+            const environment = this.configService.get<string>('MPESA_ENVIRONMENT', 'sandbox');
             const endpoints = getMpesaEndpoints(environment as 'sandbox' | 'production');
 
-            const timestamp = this.getTimestamp();
-            const password = this.generatePassword(
-                config.businessShortcode,
-                config.passkey,
-                timestamp,
-            )
+            const password = this.configService.get<string>("MPESA_INITIATOR_PASSWORD")
 
             const payload = {
                 CommandID: 'TransactionReversal',
                 Amount: Math.round(amount),
                 ReceiverParty: config.businessShortcode,
-                RecieverIdentifierType: '11',  // 11 = Paybill/Till number
+                ReceiverIdentifierType: '11',  // 11 = Paybill/Till number
                 TransactionID: originalTransactionId,
                 Occasion: reason.slice(0, 100),  // Reason (max 100 chars)
                 Remarks: `Refund for order ${orderId}`,
-                Initiator: 'api',
+                Initiator: this.configService.get<string>("MPESA_INITIATOR_NAME"),
                 SecurityCredential: password,
-                QueueTimeOutURL: `${config.callbackUrl}/timeout`,
-                ResultURL: `${config.callbackUrl}/result`,
+                QueueTimeOutURL: `${this.configService.get<string>("MPESA_CALLBACK")}/timeout`,
+                ResultURL: `${this.configService.get<string>("MPESA_CALLBACK")}/result`,
             };
             this.logger.debug('Reversal payload:', payload)
             const response = await firstValueFrom(

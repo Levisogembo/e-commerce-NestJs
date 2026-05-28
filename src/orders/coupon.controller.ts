@@ -1,7 +1,7 @@
-import { Controller, Get, Post, Patch, Body, Param, Req, UseGuards, UsePipes, ValidationPipe, ParseUUIDPipe } from '@nestjs/common'
+import { Controller, Get, Post, Patch, Body, Param, Req, UseGuards, UsePipes, ValidationPipe, ParseUUIDPipe, Query, ParseIntPipe } from '@nestjs/common'
 import { Request } from 'express'
 import { CouponService } from './coupon.service'
-import { CreateCouponDto } from './Dtos/createCoupon.dto'
+import { CreateCouponDto, UpdateCouponDto } from './Dtos/createCoupon.dto'
 import { JwtAuthGuard } from 'src/auth/guards/jwtRest.guard'
 import { ROLES } from 'src/auth/decorators/roles.decorator'
 import { Roles } from 'src/roles/dtos/enums/roles.enum'
@@ -24,8 +24,8 @@ export class CouponController {
     @Get('all')
     @ROLES(Roles.ADMIN)
     @UseGuards(RestRolesGuard)
-    async getAllCoupons() {
-        return await this.couponService.getAllCoupons()
+    async getAllCoupons(@Query('page',ParseIntPipe) page: number, @Query('limit',ParseIntPipe) limit: number, ) {
+        return await this.couponService.getAllCoupons(page,limit)
     }
 
     @Patch('deactivate/:couponId')
@@ -42,6 +42,12 @@ export class CouponController {
         return await this.couponService.activateCoupon(couponId)
     }
 
+    @Patch('update/:couponId')
+    @ROLES(Roles.ADMIN)
+    @UseGuards(RestRolesGuard)
+    async updateCoupon (@Param('couponId',ParseUUIDPipe) couponId: string, @Body() payload: UpdateCouponDto ) {
+        return await this.couponService.updateCoupon(couponId,payload)
+    }
 
     @Get('my-coupon')
     @ROLES(Roles.ADMIN, Roles.USER)

@@ -32,7 +32,7 @@ export class RedisService {
         const key = `auth:refresh:${userId}`
         const stored = await this.redis.get(key)
         if (!stored) return false
-        return await argon.verify(refreshToken, stored)
+        return await argon.verify(stored, refreshToken)
     }
 
     async deleteRefreshToken(userId: string) {

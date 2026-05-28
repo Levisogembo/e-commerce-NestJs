@@ -1,6 +1,7 @@
 // dto/create-coupon.dto.ts
 import { IsString, IsEnum, IsNumber, IsDate, IsOptional, Min, Max, IsNotEmpty } from 'class-validator'
 import { Type } from 'class-transformer'
+import { PartialType } from '@nestjs/mapped-types';
 import { DiscountType } from 'src/typeorm/entities/Coupon'
 
 export class CreateCouponDto {
@@ -37,3 +38,5 @@ export class CreateCouponDto {
     @IsString() 
     userId?: string | null  // null = global, set = personal
 }
+
+export class UpdateCouponDto extends PartialType (CreateCouponDto) {}

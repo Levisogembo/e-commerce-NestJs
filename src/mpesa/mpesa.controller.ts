@@ -27,7 +27,7 @@ class MpesaCallbackDto {
 @Controller('mpesa')
 export class MpesaController {
     private readonly logger = new Logger(MpesaController.name)
-    constructor (private readonly ordersService: OrdersService){}
+    constructor(private readonly ordersService: OrdersService) { }
 
     @Post('callback')
     async handleCallBack(@Body() callBackData: MpesaCallbackDto) {
@@ -41,13 +41,13 @@ export class MpesaController {
 
             //extract possible metadata
             let metadata: any = null
-            if(stkCallback.CallbackMetadata) {
+            if (stkCallback.CallbackMetadata) {
                 metadata = stkCallback.CallbackMetadata.Item
             }
-            
-            const result = await this.ordersService.handleMpesaCallback({checkoutRequestId, resultCode, resultDesc, metadata})
+
+            const result = await this.ordersService.handleMpesaCallback({ checkoutRequestId, resultCode, resultDesc, metadata })
             this.logger.log(`Callback processed: ${result.message}`)
-            
+
             return {
                 ResultCode: 0,
                 ResultDesc: 'Callback received successfully',
@@ -65,8 +65,36 @@ export class MpesaController {
     }
 
     @Get('status/:orderId')
-    async getPaymentStatus (@Param('orderId') orderId: string) {
+    async getPaymentStatus(@Param('orderId') orderId: string) {
         return await this.ordersService.getPaymentStatus(orderId)
+    }
+
+    @Post('result')
+    @HttpCode(HttpStatus.OK)
+    async reversalResult(@Body() callbackData: any) {
+        this.logger.log('Reversal result received');
+        this.logger.debug(JSON.stringify(callbackData, null, 2));
+
+        const { ResultCode, ResultDesc, ConversationID, TransactionID } = callbackData;
+
+        if (ResultCode === 0) {
+            this.logger.log(`Reversal successful for ConversationID: ${ConversationID}`);
+
+        } else {
+            this.logger.error(`Reversal failed: ${ResultDesc} (Code: ${ResultCode})`);
+        }
+
+      
+        return { ResultCode: 0, ResultDesc: 'Success' };
+    }
+
+   
+    @Post('timeout')
+    @HttpCode(HttpStatus.OK)
+    async reversalTimeout(@Body() timeoutData: any) {
+        this.logger.warn('Reversal timeout received');
+        this.logger.debug(JSON.stringify(timeoutData, null, 2));
+        return { ResultCode: 0, ResultDesc: 'Timeout acknowledged' };
     }
 
     @Post('test')
