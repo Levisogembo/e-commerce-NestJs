@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Patch, Body, Param, Req, UseGuards, UsePipes, ValidationPipe, ParseUUIDPipe, Query, ParseIntPipe } from '@nestjs/common'
+import { Controller, Get, Post, Patch, Body, Param, Req, UseGuards, UsePipes, ValidationPipe, ParseUUIDPipe, Query, ParseIntPipe, Delete } from '@nestjs/common'
 import { Request } from 'express'
 import { CouponService } from './coupon.service'
 import { CreateCouponDto, UpdateCouponDto } from './Dtos/createCoupon.dto'
@@ -75,5 +75,12 @@ export class CouponController {
             userId,
             body.cartTotal
         )
+    }
+
+    @Delete('delete/:couponId')
+    @ROLES(Roles.ADMIN)
+    @UseGuards(RestRolesGuard)
+    async deleteCoupon(@Param('couponId',ParseUUIDPipe) couponId: string) {
+        return await this.couponService.deleteCoupon(couponId)
     }
 }
