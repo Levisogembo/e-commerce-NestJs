@@ -39,6 +39,10 @@ export class CouponService {
     async activateCoupon(couponId: string): Promise<Coupon> {
         const coupon = await this.couponRepository.findOne({ where: { couponId } })
         if (!coupon) throw new NotFoundException('Coupon not found')
+        
+        if(!coupon.isActive && moment(coupon.expirationDate).isBefore(moment(), 'day')){
+            throw new ConflictException(`Coupon is already expired please set an appropriate expiry date before activating`)
+        }
 
         coupon.isActive = !coupon.isActive
         return await this.couponRepository.save(coupon)
@@ -161,6 +165,12 @@ export class CouponService {
         await this.couponRepository.save(coupon)
     }
 
+    async deleteCoupon (couponId: string) {
+        const coupon = await this.couponRepository.findOne({where:{couponId}})
+        if(!coupon) throw new NotFoundException()
+        return await this.couponRepository.delete(couponId)
+    }
+
     private calculateDiscount(discountType: DiscountType, discountValue: number, cartTotal: number): number {
         if (discountType === DiscountType.PERCENTAGE) {
             // e.g. 20% of Ksh 5000 = Ksh 1000
@@ -174,4 +184,5 @@ export class CouponService {
 
         return 0
     }
+    
 }
