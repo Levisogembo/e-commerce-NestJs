@@ -105,6 +105,8 @@ export class CartService {
     async removeFromCart(user, productId: string): Promise<Cart> {
         const { userId } = user
         const cart = await this.getOrCreateCart(userId);
+        console.log(cart);
+        
 
         const items = cart.items.filter(
             (item) => item.productId !== productId,
