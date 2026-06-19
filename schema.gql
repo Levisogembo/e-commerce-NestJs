@@ -232,8 +232,13 @@ type Query {
   getCategoryOptions: [Category!]!
   getOneSubCategory(subCategoryId: String!): subCategory!
   getOneProduct(productId: String!): Product!
-  getManyProducts(page: Float!, limit: Float!): PaginatedProducts!
+  getManyProducts(page: Int!, limit: Int!, searchOptions: searchOptionsInput): PaginatedProducts!
   getAllOrders(page: Int!, limit: Int!): paginatedOrders!
+}
+
+input searchOptionsInput {
+  productName: String
+  categoryName: String
 }
 
 type Mutation {

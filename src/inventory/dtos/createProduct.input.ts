@@ -98,3 +98,16 @@ export class PaginatedProducts {
     @Field(() => Number)
     total: number
 }
+
+@InputType()
+export class searchOptionsInput {
+    @Field({nullable:true})
+    @IsOptional()
+    @IsString()
+    productName?: string
+
+    @Field({nullable:true})
+    @IsOptional()
+    @IsString()
+    categoryName?: string
+}
