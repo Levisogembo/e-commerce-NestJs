@@ -1,12 +1,12 @@
 import { Logger, ParseIntPipe, ParseUUIDPipe, UploadedFile, UseGuards, UseInterceptors, UsePipes, ValidationPipe } from "@nestjs/common";
-import { Args, Mutation, Resolver, Query } from "@nestjs/graphql";
+import { Args, Mutation, Resolver, Query, Int } from "@nestjs/graphql";
 import { ROLES } from "src/auth/decorators/roles.decorator";
 import { Roles } from "src/roles/dtos/enums/roles.enum";
 import { Product } from "src/typeorm/entities/Product";
 import { productService } from "./product.service";
 import { JwtGqlGuard } from "src/auth/guards/jwt.guard";
 import { RolesGuard } from "src/auth/guards/roles.guard";
-import { createProductInput, imageInput, PaginatedProducts } from "./dtos/createProduct.input";
+import { createProductInput, imageInput, PaginatedProducts, searchOptionsInput } from "./dtos/createProduct.input";
 //import { updateProductInput } from "./dtos/updateProduct.input";
 import { FileInterceptor } from '@nestjs/platform-express'
 import { diskStorage } from "multer";
@@ -62,8 +62,8 @@ export class productResolver {
     }
 
     @Query(() => PaginatedProducts)
-    async getManyProducts(@Args("page", ParseIntPipe) page: number, @Args("limit", ParseIntPipe) limit: number) {
-        return await this.productService.getProducts(page, limit)
+    async getManyProducts(@Args("page", {type: ()=> Int}) page: number, @Args("limit", {type: ()=> Int}) limit: number, @Args("searchOptions",{nullable:true}) searchOptions: searchOptionsInput) {
+        return await this.productService.getProducts(page, limit, searchOptions)
     }
 
     @Mutation(() => String)
