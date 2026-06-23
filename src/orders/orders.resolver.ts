@@ -31,6 +31,7 @@ export class OrdersResolver {
     async getAllOrders(
         @Args('page', { type: () => Int }, ParseIntPipe) page: number,
         @Args('limit', { type: () => Int }, ParseIntPipe) limit: number,
+        @Args('searchOptions') searchOptions
     ) {
         return this.orderService.getAllOrders(page, limit);
     }
