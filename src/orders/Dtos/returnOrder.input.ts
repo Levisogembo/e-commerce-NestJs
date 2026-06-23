@@ -71,3 +71,36 @@ export class paginatedOrders {
     @Field(()=> Int)
     total: number
 }
+
+@InputType()
+export class searchOrdersInput {
+    @Field({nullable:true})
+    @IsOptional()
+    @IsString()
+    orderNumber?: string
+
+    @Field({nullable:true})
+    @IsOptional()
+    @IsString()
+    status?: string
+
+    @Field({nullable:true})
+    @IsOptional()
+    @IsString()
+    paymentMethod?: string
+
+    @Field({nullable:true})
+    @IsOptional()
+    @IsString()
+    paidFrom?: string
+
+    @Field({nullable:true})
+    @IsOptional()
+    @IsString()
+    paidUntil?: string
+
+    @Field({nullable:true})
+    @IsOptional()
+    @IsString()
+    year?: string
+}
