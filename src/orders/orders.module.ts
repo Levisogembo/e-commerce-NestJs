@@ -17,13 +17,14 @@ import { CouponUsage } from 'src/typeorm/entities/CouponUsage';
 import { CouponService } from './coupon.service';
 import { CouponController } from './coupon.controller';
 import { OrdersController } from './orders.controller';
+import { ExportExcelService } from './excelExport.service';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Orders, Product, User, orderItems, Payments, Cart, Coupon, CouponUsage])
   ],
   controllers: [CartController, CouponController, OrdersController],
-  providers: [OrdersService, OrdersResolver, OrdersRetryService, CartService, CouponService],
+  providers: [OrdersService, OrdersResolver, OrdersRetryService, CartService, CouponService, ExportExcelService],
   exports: [OrdersService]
 })
 export class OrdersModule {}
