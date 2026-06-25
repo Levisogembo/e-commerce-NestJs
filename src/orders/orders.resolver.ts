@@ -5,7 +5,7 @@ import { createOrderInput } from './Dtos/createOrder.input';
 import { ParseIntPipe, ParseUUIDPipe, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
 import { JwtGqlGuard } from 'src/auth/guards/jwt.guard';
 import { jwtPayloadDto } from 'src/auth/dtos/jwtPayload.dto';
-import { paginatedOrders, refundOrderInput, retryPaymentInput, retryPaymentResponse, returnOrderCancelation, returnOrderResponse, returnReversalConfirmation } from './Dtos/returnOrder.input';
+import { paginatedOrders, refundOrderInput, retryPaymentInput, retryPaymentResponse, returnOrderCancelation, returnOrderResponse, returnReversalConfirmation, searchOrdersInput } from './Dtos/returnOrder.input';
 import { OrdersService } from './orders.service';
 import { OrdersRetryService } from './retries.orders.services';
 import { ROLES } from 'src/auth/decorators/roles.decorator';
@@ -31,9 +31,9 @@ export class OrdersResolver {
     async getAllOrders(
         @Args('page', { type: () => Int }, ParseIntPipe) page: number,
         @Args('limit', { type: () => Int }, ParseIntPipe) limit: number,
-        @Args('searchOptions') searchOptions
+        @Args('searchOptions') searchOptions: searchOrdersInput
     ) {
-        return this.orderService.getAllOrders(page, limit);
+        return this.orderService.getAllOrders(page, limit, searchOptions);
     }
 
     @Mutation(() => returnOrderCancelation)
