@@ -4,13 +4,12 @@ import * as nodemailer from 'nodemailer';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as handlebars from 'handlebars';
-import { use } from 'passport';
 
 @Injectable()
 export class EmailsService {
   private transporter: nodemailer.Transporter;
+
   private compileTemplate(name: string, context: Record<string, any>): string {
-    //const filePath = path.join(__dirname,'templates',`${name}.hbs`) for production
     const filePath = path.join(
       process.cwd(),
       'src',
@@ -19,11 +18,22 @@ export class EmailsService {
       `${name}.hbs`,
     );
     const source = fs.readFileSync(filePath, 'utf-8');
-    console.log(filePath);
-
     const template = handlebars.compile(source);
     return template(context);
   }
+
+  private getLogoAttachment(): nodemailer.SendMailOptions['attachments'] {
+    return [
+      {
+        filename: 'cart.png',
+        path: path.join(process.cwd(), 'src', 'utils', 'logos', 'cart.png'),
+        cid: 'companyLogo',
+        contentDisposition: 'inline',
+        contentType: 'image/png',
+      },
+    ];
+  }
+
   constructor(private configService: ConfigService) {
     this.transporter = nodemailer.createTransport({
       host: 'smtp.gmail.com',
@@ -44,18 +54,20 @@ export class EmailsService {
   async sendWelcomeMessage(to: string, user: string) {
     try {
       const currentYear = new Date().getFullYear();
-      const html = this.compileTemplate('welcome', { user, currentYear });
-      const info = this.transporter.sendMail({
+      const loginUrl = this.configService.get<string>(
+        'FRONTEND_URL',
+        'http://localhost:5173',
+      );
+      const html = this.compileTemplate('welcome', {
+        user,
+        currentYear,
+        loginUrl,
+      });
+      const info = await this.transporter.sendMail({
         to,
         from: this.configService.get<string>('SMTP_USER'),
         subject: 'Welcome to our Store',
-        attachments: [
-          {
-            filename: 'cart.png',
-            path: path.resolve('./src/utils/logos/cart.png'),
-            cid: 'companyLogo',
-          },
-        ],
+        attachments: this.getLogoAttachment(),
         html,
       });
       console.log('email successfully sent to:', info);
@@ -66,46 +78,23 @@ export class EmailsService {
     }
   }
 
-  async sendVerificationEmail(to:string,verificationUrl:string,user:string){
+  async sendVerificationEmail(
+    to: string,
+    verificationUrl: string,
+    user: string,
+  ) {
     try {
       const currentYear = new Date().getFullYear();
-      const html = this.compileTemplate('verify', { verificationUrl, currentYear, user});
-      const info = this.transporter.sendMail({
+      const html = this.compileTemplate('verify', {
+        verificationUrl,
+        currentYear,
+        user,
+      });
+      const info = await this.transporter.sendMail({
         to,
         from: this.configService.get<string>('SMTP_USER'),
         subject: 'Verify Your Account',
-        attachments: [
-          {
-            filename: 'cart.png',
-            path: path.resolve('./src/utils/logos/cart.png'),
-            cid: 'companyLogo',
-          },
-        ],
-        html,
-      });
-      console.log('email successfully sent to:', info);
-      return { status: 'success' };
-    } catch (error) {
-      console.log(error);
-      return { status: 'err', message: error.message };
-    }
-  }
-  
-  async sendPasswordReset(to:string,resetUrl:string,user:string){
-    try {
-      const currentYear = new Date().getFullYear();
-      const html = this.compileTemplate('passwordReset', { resetUrl, currentYear, user});
-      const info = this.transporter.sendMail({
-        to,
-        from: this.configService.get<string>('SMTP_USER'),
-        subject: 'Reset your password',
-        attachments: [
-          {
-            filename: 'cart.png',
-            path: path.resolve('./src/utils/logos/cart.png'),
-            cid: 'companyLogo',
-          },
-        ],
+        attachments: this.getLogoAttachment(),
         html,
       });
       console.log('email successfully sent to:', info);
@@ -116,28 +105,48 @@ export class EmailsService {
     }
   }
 
-  async sendOrderSuccess(to:string,subject:string,template:string,data:Record<string,any>){
+  async sendPasswordReset(to: string, resetUrl: string, user: string) {
     try {
       const currentYear = new Date().getFullYear();
-      if(template === "orderSuccess"){
-        template = "orderSuccess"
-      }else if(template === "orderFailure"){
-        template = "orderFailure"
-      }else{
-        template = "reversalConfirmation"
-      }    
+      const html = this.compileTemplate('passwordReset', {
+        resetUrl,
+        currentYear,
+        user,
+      });
+      const info = await this.transporter.sendMail({
+        to,
+        from: this.configService.get<string>('SMTP_USER'),
+        subject: 'Reset your password',
+        attachments: this.getLogoAttachment(),
+        html,
+      });
+      console.log('email successfully sent to:', info);
+      return { status: 'success' };
+    } catch (error) {
+      console.log(error);
+      return { status: 'err', message: error.message };
+    }
+  }
+
+  async sendOrderSuccess(
+    to: string,
+    subject: string,
+    template: string,
+    data: Record<string, any>,
+  ) {
+    try {
+      if (template === 'orderSuccess') {
+        template = 'orderSuccess';
+      } else if (template === 'orderFailure') {
+        template = 'orderFailure';
+      } else {
+        template = 'reversalConfirmation';
+      }
       const html = this.compileTemplate(template, { data });
-      const info = this.transporter.sendMail({
+      const info = await this.transporter.sendMail({
         to,
         from: this.configService.get<string>('SMTP_USER'),
         subject,
-        // attachments: [
-        //   {
-        //     filename: 'cart.png',
-        //     path: path.resolve('./src/utils/logos/cart.png'),
-        //     cid: 'companyLogo',
-        //   },
-        // ],
         html,
       });
       console.log('email successfully sent to:', info);

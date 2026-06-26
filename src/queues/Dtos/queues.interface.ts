@@ -29,6 +29,17 @@ export interface emailJobData {
     data: Record<string,any>
 }
 
+export interface welcomeEmailJobData {
+    to: string
+    firstName: string
+}
+
+export interface verificationEmailJobData {
+    to: string
+    verificationUrl: string
+    firstName: string
+}
+
 export interface inventoryJobData {
     orderId: string
     items: Array<{
