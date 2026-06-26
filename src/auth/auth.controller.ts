@@ -25,18 +25,21 @@ export class AuthController {
   constructor(
     private jwtService: JwtService,
     private authService: AuthService,
-    private configService: ConfigService
-  ) { }
+    private configService: ConfigService,
+  ) {}
 
   @Get('google/login')
   @UseGuards(GoogleAuthGuard)
-  async handleLogin() { }
+  async handleLogin() {}
 
   @Get('google/redirect')
   @UseGuards(GoogleAuthGuard)
   async handleRedirect(@Req() req: Request, @Res() res: Response) {
-    const userToken = req.user as unknown as { accessToken: string, refreshToken: string };
-    const redirectUrl = this.configService.get<string>('GOOGLE_REDIRECT_URL')
+    const userToken = req.user as unknown as {
+      accessToken: string;
+      refreshToken: string;
+    };
+    const redirectUrl = this.configService.get<string>('GOOGLE_REDIRECT_URL');
     return res.redirect(
       `${redirectUrl}=${userToken.accessToken}&refreshToken=${userToken.refreshToken}`,
     );
@@ -45,9 +48,9 @@ export class AuthController {
   @Post('refresh')
   async refresh(@Body() body: { refreshToken: string }) {
     if (!body.refreshToken) {
-      throw new UnauthorizedException('Refresh token is required')
+      throw new UnauthorizedException('Refresh token is required');
     }
-    return await this.authService.refreshAccessToken(body.refreshToken)
+    return await this.authService.refreshAccessToken(body.refreshToken);
   }
 
   @Get('valid')
@@ -57,10 +60,15 @@ export class AuthController {
 
   @Get('verify')
   async verifyEmail(@Query('token') token: string) {
-    const isValidToken = await this.jwtService.verifyAsync(token);
-    if (!isValidToken) throw new BadRequestException('Invalid token');
-    const userId = isValidToken.userId;
-    return await this.authService.verifyUser(userId);
+    try {
+      const payload = await this.jwtService.verifyAsync(token);
+      const userId = payload.userId;
+      return await this.authService.verifyUser(userId);
+    } catch (error) {
+      throw new BadRequestException(
+        'Verification link expired. Request a new one.',
+      );
+    }
   }
 
   @Post('forgot')
@@ -70,11 +78,13 @@ export class AuthController {
 
   @Post('reset')
   @UsePipes(new ValidationPipe())
-  async resetPassword(@Body() { newPassword, confirmedPassword, token }: resetPasswordDto,
+  async resetPassword(
+    @Body() { newPassword, confirmedPassword, token }: resetPasswordDto,
   ) {
     const isValidToken = await this.jwtService.verifyAsync(token);
     if (!isValidToken) throw new BadRequestException('Invalid token');
-    if (newPassword !== confirmedPassword) throw new ConflictException('Passwords do not match');
+    if (newPassword !== confirmedPassword)
+      throw new ConflictException('Passwords do not match');
     const userId = isValidToken.userId;
     return await this.authService.resetPassword(userId, newPassword);
   }

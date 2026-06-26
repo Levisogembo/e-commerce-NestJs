@@ -7,9 +7,10 @@ import { Role } from 'src/typeorm/entities/Role';
 import { userAddressesResolver } from './adresses.resolver';
 import { Address } from 'src/typeorm/entities/Addresses';
 import { addressService } from './address.service';
+import { AuthModule } from 'src/auth/auth.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User, Address])],
+  imports: [TypeOrmModule.forFeature([User, Address]), AuthModule],
   providers: [UsersService, UsersResolver, userAddressesResolver, addressService]
 })
 export class UsersModule {}

@@ -12,14 +12,16 @@ import { createUserInput } from './dtos/createUser.input';
 import { use } from 'passport';
 import * as argon from 'argon2'
 import { Roles } from 'src/roles/dtos/enums/roles.enum';
-import { EmailsService } from 'src/emails/emails.service';
 import { Address } from 'src/typeorm/entities/Addresses';
+import { AuthService } from 'src/auth/auth.service';
+import { QueuesService } from 'src/queues/queues.service';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(User) private userRepository: Repository<User>,
-    private readonly emailsService: EmailsService,
+    private readonly authService: AuthService,
+    private readonly queueService: QueuesService,
     @InjectRepository(Address) private addressRepository: Repository<Address>,
   ) { }
 
@@ -38,7 +40,8 @@ export class UsersService {
       createdAt: new Date()
     });
     const savedUser = await this.userRepository.save(newUser)
-    await this.emailsService.sendWelcomeMessage(email, userData.firstName)
+    await this.queueService.addWelcomeEmailJob({ to: email, firstName: userData.firstName })
+    await this.authService.sendEmailVerification(savedUser.userId)
     return savedUser
   }
 
@@ -58,7 +61,7 @@ export class UsersService {
       createdAt: new Date()
     });
     const savedUser = await this.userRepository.save(newUser)
-    await this.emailsService.sendWelcomeMessage(email, userData.firstName)
+    await this.queueService.addWelcomeEmailJob({ to: email, firstName: userData.firstName })
     return savedUser
   }
 

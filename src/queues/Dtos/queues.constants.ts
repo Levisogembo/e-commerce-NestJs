@@ -9,6 +9,8 @@ export const QUEUES = {
 export const JOB_NAMES = {
     PROCESS_ORDER: 'process-order',
     SEND_CONFIRMATION_EMAIL: 'send-confirmation-email',
+    SEND_WELCOME_EMAIL: 'send-welcome-email',
+    SEND_VERIFICATION_EMAIL: 'send-verification-email',
     UPDATE_INVENTORY: 'update-inventory',
     PROCESS_PAYMENT: 'process-payment',
     RELEASE_EXPIRED_RESERVATIONS: 'release-expired-reservations',

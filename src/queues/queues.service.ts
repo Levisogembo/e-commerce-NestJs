@@ -2,7 +2,7 @@ import { InjectQueue } from '@nestjs/bullmq';
 import { Injectable, Logger } from '@nestjs/common';
 import { JOB_NAMES, QUEUES } from './Dtos/queues.constants';
 import { Queue } from 'bullmq';
-import { emailJobData, inventoryJobData, orderJobData, paymentJobData } from './Dtos/queues.interface';
+import { emailJobData, inventoryJobData, orderJobData, paymentJobData, verificationEmailJobData, welcomeEmailJobData } from './Dtos/queues.interface';
 
 //to be considered for future improvement
 /*
@@ -111,6 +111,38 @@ export class QueuesService {
         } catch (error) {
             this.logger.error(`Failed to add email job: ${error.message}`);
             return null;
+        }
+    }
+
+    async addWelcomeEmailJob(data: welcomeEmailJobData) {
+        this.logger.log(`Adding welcome email job for: ${data.to}`)
+        try {
+            const job = await this.emailQueue.add(JOB_NAMES.SEND_WELCOME_EMAIL, data, {
+                priority: 4,
+                attempts: 3,
+                backoff: { type: 'fixed', delay: 5000 },
+                removeOnComplete: true,
+            })
+            return job.id
+        } catch (error) {
+            this.logger.error(`Failed to add welcome email job: ${error.message}`);
+            throw error;
+        }
+    }
+
+    async addVerificationEmailJob(data: verificationEmailJobData) {
+        this.logger.log(`Adding verification email job for: ${data.to}`)
+        try {
+            const job = await this.emailQueue.add(JOB_NAMES.SEND_VERIFICATION_EMAIL, data, {
+                priority: 4,
+                attempts: 3,
+                backoff: { type: 'fixed', delay: 5000 },
+                removeOnComplete: true,
+            })
+            return job.id
+        } catch (error) {
+            this.logger.error(`Failed to add verification email job: ${error.message}`);
+            throw error;
         }
     }
 

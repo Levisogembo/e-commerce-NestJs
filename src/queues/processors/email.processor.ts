@@ -22,6 +22,12 @@ export class EmailProcessor extends WorkerHost {
       switch (job.name) {
         case JOB_NAMES.SEND_CONFIRMATION_EMAIL:
           return await this.sendConfirmationEmail(job);
+
+        case JOB_NAMES.SEND_WELCOME_EMAIL:
+          return await this.sendWelcomeEmail(job);
+
+        case JOB_NAMES.SEND_VERIFICATION_EMAIL:
+          return await this.sendVerificationEmail(job);
         
         default:
           this.logger.warn(`Unknown email job type: ${job.name}`);
@@ -50,6 +56,44 @@ export class EmailProcessor extends WorkerHost {
       success: true,
       to,
       subject,
+      sentAt: new Date().toISOString(),
+    };
+  }
+
+  private async sendWelcomeEmail(job: Job) {
+    const { to, firstName } = job.data;
+
+    this.logger.log(`Sending welcome email to ${to}`);
+
+    const result = await this.emailService.sendWelcomeMessage(to, firstName);
+    if (result.status !== 'success') {
+      throw new Error(result.message ?? 'Failed to send welcome email');
+    }
+
+    return {
+      success: true,
+      to,
+      sentAt: new Date().toISOString(),
+    };
+  }
+
+  private async sendVerificationEmail(job: Job) {
+    const { to, verificationUrl, firstName } = job.data;
+
+    this.logger.log(`Sending verification email to ${to}`);
+
+    const result = await this.emailService.sendVerificationEmail(
+      to,
+      verificationUrl,
+      firstName,
+    );
+    if (result.status !== 'success') {
+      throw new Error(result.message ?? 'Failed to send verification email');
+    }
+
+    return {
+      success: true,
+      to,
       sentAt: new Date().toISOString(),
     };
   }
