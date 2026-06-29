@@ -1,4 +1,4 @@
-import { Field, InputType } from '@nestjs/graphql';
+import { Field, InputType, PartialType } from '@nestjs/graphql';
 import {
   IsEmail,
   IsNotEmpty,
@@ -25,12 +25,12 @@ export class createUserInput {
   @IsString()
   lastName: string;
 
-  // @Field()
-  // @IsNotEmpty()
-  // @IsString()
-  // @MaxLength(10)
-  // @MinLength(10)
-  // phoneNumber: string;
+  @Field()
+  @IsNotEmpty()
+  @IsString()
+  @MaxLength(10)
+  @MinLength(10)
+  phoneNumber: string;
 
   @Field()
   @IsNotEmpty()
@@ -59,3 +59,5 @@ export class createUserInput {
   confirmPassword?: string
 
 }
+
+export class editUserInput extends PartialType(createUserInput) {}

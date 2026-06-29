@@ -48,7 +48,7 @@ export class AuthResolver {
     @CurrentUser() req: jwtPayloadDto,
     @Args('passwordInput')
     { newPassword, confirmedPassword, currentPassword }: changePasswordInput,
-  ) {
+  ) { 
     if (newPassword !== confirmedPassword)
       throw new HttpException('Passwords do not match', HttpStatus.CONFLICT);
     const userId = req.userId;

@@ -88,4 +88,11 @@ export class AuthController {
     const userId = isValidToken.userId;
     return await this.authService.resetPassword(userId, newPassword);
   }
+
+  @Post('resend')
+  @UsePipes(new ValidationPipe())
+  async resendVerificationMail(@Body() { email }: { email: string }) {
+    //console.log(email);
+    return await this.authService.resendVerification(email);
+  }
 }
