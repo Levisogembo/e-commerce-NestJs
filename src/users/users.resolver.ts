@@ -1,7 +1,7 @@
 import { Args, Mutation, Resolver, Query, Context, Int } from '@nestjs/graphql';
 import { UsersService } from './users.service';
 import { User } from 'src/typeorm/entities/User';
-import { createUserInput } from './dtos/createUser.input';
+import { createUserInput, editUserInput } from './dtos/createUser.input';
 import { ClassSerializerInterceptor, HttpException, HttpStatus, ParseIntPipe, ParseUUIDPipe, UnauthorizedException, UseGuards, UseInterceptors, UsePipes, ValidationPipe } from '@nestjs/common';
 import { JwtGqlGuard } from 'src/auth/guards/jwt.guard';
 import { ROLES } from 'src/auth/decorators/roles.decorator';
@@ -38,7 +38,8 @@ export class UsersResolver {
     @Query(() => User)
     @UseGuards(JwtGqlGuard)
     @UsePipes(new ValidationPipe)
-    async getUser(@Args("userId", ParseUUIDPipe) userId: string) {
+    async getUser(@CurrentUser() req: jwtPayloadDto) {
+        const userId = req.userId
         return await this.userService.getOneUser(userId)
     }
 

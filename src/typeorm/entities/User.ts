@@ -45,6 +45,10 @@ export class User{
     @Column({default:Roles.USER})
     role: Roles
 
+    @Field({nullable:true})
+    @Column({default:null})
+    phoneNumber?: string
+
     @Field(()=>Address,{nullable:true})
     @OneToOne(()=>Address,(address)=>address.user)
     address?: Address 

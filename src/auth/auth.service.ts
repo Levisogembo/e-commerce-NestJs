@@ -31,7 +31,7 @@ export class AuthService {
 
   async validateLocal(email: string, password: string) {
     const foundUser = await this.userRepository.findOne({
-      where: { email },
+      where: { email }
     });
     if (!foundUser) throw new NotFoundException();
     const userPassword = foundUser.password as string;
@@ -67,16 +67,12 @@ export class AuthService {
   async generateTokenPair(
     user,
   ): Promise<{ accessToken: string; refreshToken: string }> {
+
     const payload = {
       userId: user.userId,
       email: user.email,
-      role: user.role,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      createdAt: user.createdAt,
-      isVerified: user.isVerified,
+      role: user.role
     };
-
     const accessToken = await this.jwtService.signAsync(payload, {
       expiresIn: '1h',
       secret: this.configService.get('JWT_SECRET'),
@@ -127,11 +123,7 @@ export class AuthService {
         {
           userId: user.userId,
           email: user.email,
-          role: user.role,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          createdAt: user.createdAt,
-          isVerified: user.isVerified,
+          role: user.role
         },
         {
           expiresIn: '1h',
@@ -183,7 +175,7 @@ export class AuthService {
       const match = await argon.verify(password, currentPassword);
       if (!match)
         throw new HttpException(
-          'Current password does not match',
+          'Old password does not match',
           HttpStatus.CONFLICT,
         );
       const hashedPassword = await argon.hash(newPassword);
@@ -209,6 +201,13 @@ export class AuthService {
       firstName: user.firstName,
     });
     return `Verification email queued for ${email}`;
+  }
+
+  async resendVerification(email:string){
+    const foundUser = await this.userRepository.findOne({where:{email}})
+    if(!foundUser) throw new NotFoundException()
+    const userId = foundUser.userId
+    return await this.sendEmailVerification(userId)
   }
 
   async verifyUser(userId: string) {

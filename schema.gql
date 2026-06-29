@@ -116,6 +116,7 @@ type User {
   isActive: Boolean!
   createdAt: DateTime!
   role: Roles!
+  phoneNumber: String
   address: Address
   orders: [Orders!]!
   payments: [Payments!]!
@@ -224,7 +225,7 @@ type paginatedOrders {
 type Query {
   sendVerificationEmail: String!
   hello: String!
-  getUser(userId: String!): User!
+  getUser: User!
   getAllUser(page: Int!, limit: Int!): [User!]!
   getAddressData: Address!
   getCategory(categoryId: String!): Category!
@@ -289,6 +290,7 @@ input changePasswordInput {
 input createUserInput {
   firstName: String!
   lastName: String!
+  phoneNumber: String!
   email: String!
   password: String
   confirmPassword: String
