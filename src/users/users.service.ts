@@ -1,4 +1,5 @@
 import {
+  ConflictException,
   HttpException,
   HttpStatus,
   Injectable,
@@ -8,7 +9,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Role } from 'src/typeorm/entities/Role';
 import { User } from 'src/typeorm/entities/User';
 import { Repository } from 'typeorm';
-import { createUserInput } from './dtos/createUser.input';
+import { createUserInput, editUserInput } from './dtos/createUser.input';
 import { use } from 'passport';
 import * as argon from 'argon2';
 import { Roles } from 'src/roles/dtos/enums/roles.enum';
@@ -95,6 +96,30 @@ export class UsersService {
       take: limit,
     });
     return users;
+  }
+
+  async editProfile(userId, profilePayload: editUserInput) {
+    const foundUser = await this.userRepository.findOne({ where: { userId } });
+    if (!foundUser) throw new NotFoundException();
+    if (profilePayload.email) {
+      const foundEmail = await this.userRepository.findOne({
+        where: { email: profilePayload.email },
+      });
+      if (foundEmail)
+        throw new ConflictException(
+          'Email already exists please try another one',
+        );
+    }
+    const filteredObj = Object.fromEntries(
+      Object.entries(profilePayload).filter(
+        ([_, value]) => value !== undefined && value !== null && value !== '',
+      ),
+    );
+    
+    await this.userRepository.update(userId, filteredObj);
+    const user = await this.getOneUser(userId);
+
+    return user;
   }
 
   async deleteUser(userId: string) {

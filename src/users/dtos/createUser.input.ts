@@ -60,4 +60,26 @@ export class createUserInput {
 
 }
 
-export class editUserInput extends PartialType(createUserInput) {}
+@InputType()
+export class editUserInput {
+  @Field({nullable:true})
+  @IsOptional()
+  @IsString()
+  firstName?: string
+
+  @Field({nullable:true})
+  @IsOptional()
+  @IsString()
+  lastName?: string
+
+  @Field({nullable:true})
+  @IsOptional()
+  @IsEmail()
+  email?: string
+
+  @Field({nullable:true})
+  @IsOptional()
+  @MaxLength(10)
+  @MinLength(10)
+  phoneNumber?: string;
+}
