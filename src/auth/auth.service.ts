@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   HttpException,
   HttpStatus,
   Injectable,
@@ -182,6 +183,8 @@ export class AuthService {
       const updateObj = { password: hashedPassword };
       await this.userRepository.update(userId, updateObj);
       return 'Password Changed Successfully';
+    }else {
+      throw new BadRequestException("You do not have any password set at the moment")
     }
   }
 

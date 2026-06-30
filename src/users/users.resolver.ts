@@ -62,4 +62,11 @@ export class UsersResolver {
         await this.redisService.invalidateToken(extractedToken)
         return "User deleted successfully"
     }
+
+    @UseGuards(JwtGqlGuard)
+    @Mutation(()=>User)
+    async editProfile (@CurrentUser() userToken: jwtPayloadDto, @Args("profilePayload") profilePayload: editUserInput) {
+        const userId = userToken.userId
+        return await this.userService.editProfile(userId,profilePayload)
+    }
 }

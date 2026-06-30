@@ -258,6 +258,7 @@ type Mutation {
   createUser(userInput: createUserInput!): User!
   createAdmin(adminInput: createUserInput!): User!
   deleteUser: String!
+  editProfile(profilePayload: editUserInput!): User!
   createAddress(addressPayload: createAddressInput!): Address!
   updateAddress(uploadPayload: updateUserAddressInput!): Address!
   createNewRole(roleInput: createRoleInput!): Role!
@@ -294,6 +295,13 @@ input createUserInput {
   email: String!
   password: String
   confirmPassword: String
+}
+
+input editUserInput {
+  firstName: String
+  lastName: String
+  email: String
+  phoneNumber: String
 }
 
 input createAddressInput {
