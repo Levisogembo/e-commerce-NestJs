@@ -83,29 +83,73 @@ export class AnalyticsService {
       where: { user: { userId } },
       relations: ['orderItems', 'orderItems.Product'],
       order: { createdAt: 'DESC' },
+      take: 3,
     });
     const [completed, completedOrders] =
       await this.ordersRepository.findAndCount({
         where: { user: { userId }, status: orderStatus.COMPLETED },
         relations: ['orderItems', 'orderItems.Product'],
         order: { createdAt: 'DESC' },
+        take: 3,
       });
     const totalRevenue = completed.reduce(
       (total, item) => total + Number(item.total || 0),
       0,
     );
     const [coupons, couponCount] = await this.couponsRepository.findAndCount({
-        where: {isActive:true}
-    })
+      where: { isActive: true },
+      order: { createdAt: 'DESC' },
+      take: 1,
+    });
     return {
-        orders,
-        totalOrders,
-        completed,
-        completedOrders,
-        totalRevenue,
-        coupons,
-        couponCount
-    }
+      orders,
+      totalOrders,
+      completed,
+      completedOrders,
+      totalRevenue,
+      coupons,
+      couponCount,
+    };
+  }
+
+  async getCoupons(page: number, limit: number) {
+    const offset = (page - 1) * limit;
+    const [coupons, total] = await this.couponsRepository.findAndCount({
+      where: { isActive: true },
+      skip: offset,
+      take: limit,
+      order: { createdAt: 'DESC' },
+      select: {
+        couponId: true,
+        code: true,
+        discountType: true,
+        discountValue: true,
+        expirationDate: true,
+        minOrderAmount: true,
+        isActive: true,
+      },
+    });
+    return { coupons, total };
+  }
+
+  async getOrders(userId: string, page: number, limit: number) {
+    const offset = (page - 1) * limit;
+    const [customerOrders, customerOrdersCount] =
+      await this.ordersRepository.findAndCount({
+        where: { user: { userId } },
+        relations: ['orderItems', 'orderItems.Product', 'user'],
+        skip: offset,
+        take: limit,
+        order: { createdAt: 'DESC' },
+        select: {
+          user: {
+            userId: true,
+            firstName: true,
+            lastName: true,
+          },
+        },
+      });
+    return { customerOrders, customerOrdersCount };
   }
 
   private getDatesInRange(startDate: Date, endDate: Date): string[] {

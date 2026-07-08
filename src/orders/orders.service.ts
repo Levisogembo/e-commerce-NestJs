@@ -473,7 +473,7 @@ export class OrdersService {
     }
 
     if (paidFrom && paidUntil) {
-      query.andWhere('order.paidAt BETWEEN :paidFrom AND :paidUntil', {
+      query.andWhere('order.createdAt BETWEEN :paidFrom AND :paidUntil', {
         paidFrom: new Date(`${paidFrom}T00:00:00`),
 
         paidUntil: new Date(`${paidUntil}T23:59:59`),
@@ -481,7 +481,7 @@ export class OrdersService {
     }
 
     if (year) {
-      query.andWhere('EXTRACT(YEAR FROM order.paidAt)=:year', {
+      query.andWhere('EXTRACT(YEAR FROM order.createdAt)=:year', {
         year,
       });
     }

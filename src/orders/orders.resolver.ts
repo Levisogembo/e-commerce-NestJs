@@ -13,6 +13,7 @@ import { Roles } from 'src/roles/dtos/enums/roles.enum';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { Cart } from 'src/typeorm/entities/Cart';
 import { PaginatedCategories } from 'src/inventory/dtos/createCategory.input';
+import { JwtAuthGuard } from 'src/auth/guards/jwtRest.guard';
 
 @Resolver(() => Orders)
 @UseGuards(JwtGqlGuard)
@@ -28,6 +29,8 @@ export class OrdersResolver {
     }
 
     @Query(() => paginatedOrders)
+    @ROLES(Roles.ADMIN)
+    @UseGuards(RolesGuard)
     async getAllOrders(
         @Args('page', { type: () => Int }, ParseIntPipe) page: number,
         @Args('limit', { type: () => Int }, ParseIntPipe) limit: number,
