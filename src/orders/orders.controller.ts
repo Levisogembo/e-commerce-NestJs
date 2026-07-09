@@ -2,6 +2,8 @@ import {
   Body,
   Controller,
   Get,
+  Param,
+  ParseUUIDPipe,
   Post,
   Query,
   Res,
@@ -15,6 +17,7 @@ import { Roles } from 'src/roles/dtos/enums/roles.enum';
 import { OrdersService } from './orders.service';
 import { ExportExcelService } from './excelExport.service';
 import { Response } from 'express';
+import { InvoiceService } from './invoices.service';
 
 @Controller('orders')
 export class OrdersController {
@@ -22,6 +25,7 @@ export class OrdersController {
     private mpesaService: MpesaService,
     private ordersService: OrdersService,
     private excelService: ExportExcelService,
+    private invoiceService: InvoiceService,
   ) {}
 
   @Post('reverse')
@@ -49,14 +53,31 @@ export class OrdersController {
 
   @Get('export')
   @ROLES(Roles.ADMIN)
-  @UseGuards(JwtAuthGuard,RestRolesGuard)
+  @UseGuards(JwtAuthGuard, RestRolesGuard)
   async exportOrders(@Res() res: Response, @Query() filters) {
     const orders = await this.ordersService.exportOrders(filters);
     const buffer = await this.excelService.generateExcel(orders);
     res.set({
-      'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'Content-Type':
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
       'Content-Disposition': 'attachment; filename=orders.xlsx',
     });
-    res.send(buffer)
+    res.send(buffer);
+  }
+
+  @Get('/:orderId/invoice')
+  async generateInvoice(
+    @Param('orderId', ParseUUIDPipe) orderId: string,
+    @Res() res: Response,
+  ) {
+    const invoicePdf = await this.invoiceService.generateInvoice(orderId);
+
+    res.set({
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': `attachment; filename=invoice-${orderId}.pdf`,
+      'Content-Length': invoicePdf.length,
+    });
+
+    res.end(invoicePdf)
   }
 }

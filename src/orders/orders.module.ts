@@ -18,13 +18,14 @@ import { CouponService } from './coupon.service';
 import { CouponController } from './coupon.controller';
 import { OrdersController } from './orders.controller';
 import { ExportExcelService } from './excelExport.service';
+import { InvoiceService } from './invoices.service';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Orders, Product, User, orderItems, Payments, Cart, Coupon, CouponUsage])
   ],
   controllers: [CartController, CouponController, OrdersController],
-  providers: [OrdersService, OrdersResolver, OrdersRetryService, CartService, CouponService, ExportExcelService],
+  providers: [OrdersService, OrdersResolver, OrdersRetryService, CartService, CouponService, ExportExcelService, InvoiceService],
   exports: [OrdersService]
 })
 export class OrdersModule {}

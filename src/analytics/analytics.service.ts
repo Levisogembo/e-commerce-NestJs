@@ -137,7 +137,7 @@ export class AnalyticsService {
     const [customerOrders, customerOrdersCount] =
       await this.ordersRepository.findAndCount({
         where: { user: { userId } },
-        relations: ['orderItems', 'orderItems.Product', 'user'],
+        relations: ['orderItems', 'orderItems.Product', 'user','payments'],
         skip: offset,
         take: limit,
         order: { createdAt: 'DESC' },
