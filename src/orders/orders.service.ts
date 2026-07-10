@@ -71,7 +71,12 @@ export class OrdersService {
       (sum, item) => sum + item.requestedQty * item.unitPrice,
       0,
     );
-    const total = subtotal;
+    let total = subtotal;
+    let discountAmount = payload.discountAmount ?? 0;
+
+    if (payload.couponId && discountAmount > 0) {
+      total = Math.max(0, subtotal - discountAmount); // never go below 0
+    }
 
     //create a pending order using transactions
     const savedOrder = await this.orderRepository.manager.transaction(

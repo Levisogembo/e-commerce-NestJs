@@ -9,6 +9,8 @@ import { Repository } from 'typeorm';
 import { orderStatus } from './Dtos/status.enum';
 import * as PDFDocument from 'pdfkit';
 import { Buffer } from 'buffer';
+import * as path from 'path';
+import * as fs from 'fs';
 
 @Injectable()
 export class InvoiceService {
@@ -45,13 +47,36 @@ export class InvoiceService {
       buffers.push(chunk);
     });
 
+    const logoPath = path.join(
+      process.cwd(),
+      'src',
+      'utils',
+      'logos',
+      'cart.png',
+    );
+    if (fs.existsSync(logoPath)) {
+      doc.image(logoPath, 50, 40, { width: 55 });
+    }
     doc
-      .fillColor('#10B981') // emerald
-      .fontSize(28)
       .font('Helvetica-Bold')
-      .text('ELIXIR STORE', {
-        align: 'center',
-      });
+      .fontSize(26)
+      .fillColor('#10B981')
+      .text('ELIXIR STORE', 120, 45);
+
+    doc
+      .font('Helvetica')
+      .fontSize(10)
+      .fillColor('gray')
+      .text('support@elixirstore.com', 120, 75);
+
+    doc.text('www.elixirstore.com', 120);
+    // doc
+    //   .fillColor('#10B981') // emerald
+    //   .fontSize(28)
+    //   .font('Helvetica-Bold')
+    //   .text('ELIXIR STORE', {
+    //     align: 'center',
+    //   });
 
     doc.moveDown(0.3);
 
@@ -323,8 +348,8 @@ export class InvoiceService {
       .stroke();
 
     // doc.moveDown();
+    doc.y += 12;
     doc.x = 50;
-    doc.y = Math.max(doc.y + 20, 720);
     doc
       .font('Helvetica-Bold')
       .fontSize(13)
@@ -349,9 +374,9 @@ export class InvoiceService {
       align: 'center',
     });
 
-    doc.text('www.elixirstore.com', {
-      align: 'center',
-    });
+    // doc.text('www.elixirstore.com', {
+    //   align: 'center',
+    // });
 
     doc.moveDown();
     doc

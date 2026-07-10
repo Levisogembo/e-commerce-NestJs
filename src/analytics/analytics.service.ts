@@ -47,12 +47,11 @@ export class AnalyticsService {
   async getMonthlySalesData() {
     const startDate = moment().subtract(1, 'month').startOf('day').toDate();
     const endDate = moment().endOf('day').toDate();
-
     const dailySalesData = await this.ordersRepository
       .createQueryBuilder('order')
-      .select('DATE(order.createdAt)', 'name')
+      .select(this.getDateSelectExpression(), 'date')
       .addSelect('COUNT(*)', 'sales')
-      .addSelect('SUM(order.total)', 'revenue')
+      .addSelect('COALESCE(SUM(order.total), 0)', 'revenue') //coalesce so that any null order total becomes 0
       .where('order.createdAt BETWEEN :start AND :end', {
         start: startDate,
         end: endDate,
@@ -60,22 +59,57 @@ export class AnalyticsService {
       .andWhere('order.status = :status', {
         status: orderStatus.COMPLETED,
       })
-      .groupBy('DATE(order.createdAt)')
-      .orderBy('name', 'ASC')
+      .groupBy(this.getDateGroupExpression())
+      .orderBy('date', 'ASC')
       .getRawMany();
-
-    // fill missing dates so chart doesn't break
+    // Map by normalized date key to avoid string mismatch bugs
+    const salesByDate = new Map<string, { sales: number; revenue: number }>();
+    for (const row of dailySalesData) {
+      const dateKey = this.formatDateKey(row.date);
+      salesByDate.set(dateKey, {
+        sales: Number(row.sales) || 0,
+        revenue: Number(row.revenue) || 0,
+      });
+    }
     const dateArray = this.getDatesInRange(startDate, endDate);
-
     return dateArray.map((date) => {
-      const found = dailySalesData.find((d) => d.name === date);
-
+      const found = salesByDate.get(date);
       return {
-        name: date,
-        sales: found?.sales || 0,
-        revenue: found?.revenue || 0,
+        name: date, // frontend: new Date(item.name)
+        sales: found?.sales ?? 0,
+        revenue: found?.revenue ?? 0,
       };
     });
+  }
+
+  private getDatesInRange(startDate: Date, endDate: Date): string[] {
+    const dates: string[] = [];
+    const current = moment(startDate).startOf('day');
+    const end = moment(endDate).startOf('day');
+    while (current.isSameOrBefore(end, 'day')) {
+      dates.push(current.format('YYYY-MM-DD'));
+      current.add(1, 'day');
+    }
+    return dates;
+  }
+
+  private formatDateKey(value: Date | string): string {
+    return moment(value).format('YYYY-MM-DD');
+  }
+
+  private getDateSelectExpression(): string {
+    const dbType = process.env.DB_TYPE || 'mysql';
+    if (dbType === 'postgres') {
+      return `TO_CHAR(order.createdAt, 'YYYY-MM-DD')`;
+    }
+    return `DATE(order.createdAt)`;
+  }
+  private getDateGroupExpression(): string {
+    const dbType = process.env.DB_TYPE || 'mysql';
+    if (dbType === 'postgres') {
+      return `TO_CHAR(order.createdAt, 'YYYY-MM-DD')`;
+    }
+    return `DATE(order.createdAt)`;
   }
 
   async getDashboardData(userId: string) {
@@ -137,7 +171,7 @@ export class AnalyticsService {
     const [customerOrders, customerOrdersCount] =
       await this.ordersRepository.findAndCount({
         where: { user: { userId } },
-        relations: ['orderItems', 'orderItems.Product', 'user','payments'],
+        relations: ['orderItems', 'orderItems.Product', 'user', 'payments'],
         skip: offset,
         take: limit,
         order: { createdAt: 'DESC' },
@@ -150,17 +184,5 @@ export class AnalyticsService {
         },
       });
     return { customerOrders, customerOrdersCount };
-  }
-
-  private getDatesInRange(startDate: Date, endDate: Date): string[] {
-    const dates: string[] = [];
-    let currentDate = new Date(startDate);
-
-    while (currentDate <= endDate) {
-      dates.push(currentDate.toISOString().split('T')[0]);
-      currentDate.setDate(currentDate.getDate() + 1);
-    }
-
-    return dates;
   }
 }
