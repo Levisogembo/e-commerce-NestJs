@@ -66,6 +66,7 @@ export class OrdersController {
   }
 
   @Get('/:orderId/invoice')
+  @UseGuards(JwtAuthGuard)
   async generateInvoice(
     @Param('orderId', ParseUUIDPipe) orderId: string,
     @Res() res: Response,

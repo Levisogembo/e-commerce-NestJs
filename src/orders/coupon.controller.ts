@@ -18,6 +18,8 @@ export class CouponController {
     @ROLES(Roles.ADMIN)
     @UseGuards(RestRolesGuard)
     async createCoupon(@Body() createCouponDto: CreateCouponDto) {
+        console.log(createCouponDto);
+        
         return await this.couponService.createCoupon(createCouponDto)
     }
 
