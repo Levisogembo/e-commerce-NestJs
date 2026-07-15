@@ -28,6 +28,7 @@ import { Cart } from './typeorm/entities/Cart';
 import { Coupon } from './typeorm/entities/Coupon';
 import { CouponUsage } from './typeorm/entities/CouponUsage';
 import { AnalyticsModule } from './analytics/analytics.module';
+import { MetricsModule } from './metrics/metrics.module';
 
 @Module({
   imports: [
@@ -64,7 +65,8 @@ import { AnalyticsModule } from './analytics/analytics.module';
     OrdersModule,
     QueuesModule,
     MpesaModule,
-    AnalyticsModule
+    AnalyticsModule,
+    MetricsModule
   ],
   controllers: [AppController],
   providers: [AppService],
