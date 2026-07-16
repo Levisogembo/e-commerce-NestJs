@@ -17,6 +17,7 @@ import { EmailsService } from 'src/emails/emails.service';
 import { RedisService } from 'src/redis/redis.service';
 import { ConfigService } from '@nestjs/config';
 import { QueuesService } from 'src/queues/queues.service';
+import { MetricsService } from 'src/metrics/metrics.service';
 
 @Injectable()
 export class AuthService {
@@ -28,26 +29,31 @@ export class AuthService {
     private redisService: RedisService,
     private configService: ConfigService,
     private queueService: QueuesService,
+    private metricsService: MetricsService,
   ) {}
 
   async validateLocal(email: string, password: string) {
     const foundUser = await this.userRepository.findOne({
-      where: { email }
+      where: { email },
     });
     if (!foundUser) throw new NotFoundException();
     const userPassword = foundUser.password as string;
     const passwordMatch = await argon.verify(userPassword, password);
-    if (!passwordMatch)
+    if (!passwordMatch) {
+      this.metricsService.incrementFailedLogin();
       throw new HttpException(
         'Credentials do not match',
         HttpStatus.UNAUTHORIZED,
       );
+    }
     if (!foundUser.isVerified) {
+      this.metricsService.incrementFailedLogin();
       throw new HttpException(
         'Email not verified please verify your email',
         HttpStatus.UNAUTHORIZED,
       );
     }
+    this.metricsService.incrementSuccessfulLogin();
     return await this.generateTokenPair(foundUser);
   }
 
@@ -57,22 +63,23 @@ export class AuthService {
       return await this.createGoogleUser(email, profile);
     }
     if (!foundUser.isVerified) {
+      this.metricsService.incrementFailedLogin();
       throw new HttpException(
         'Email not verified please verify your email',
         HttpStatus.UNAUTHORIZED,
-      )
+      );
     }
+    this.metricsService.incrementSuccessfulLogin();
     return await this.generateTokenPair(foundUser);
   }
 
   async generateTokenPair(
     user,
   ): Promise<{ accessToken: string; refreshToken: string }> {
-
     const payload = {
       userId: user.userId,
       email: user.email,
-      role: user.role
+      role: user.role,
     };
     const accessToken = await this.jwtService.signAsync(payload, {
       expiresIn: '1h',
@@ -124,7 +131,7 @@ export class AuthService {
         {
           userId: user.userId,
           email: user.email,
-          role: user.role
+          role: user.role,
         },
         {
           expiresIn: '1h',
@@ -146,8 +153,9 @@ export class AuthService {
 
   async createGoogleUser(email: string, profile: createGoogleUser) {
     const foundEmail = await this.userRepository.findOne({ where: { email } });
-    if (foundEmail)
+    if (foundEmail) {
       throw new HttpException('Email already exists', HttpStatus.CONFLICT);
+    }
 
     const googleUser = await this.userRepository.create({
       firstName: profile.given_name,
@@ -161,6 +169,8 @@ export class AuthService {
       to: email,
       firstName: profile.given_name,
     });
+    this.metricsService.incrementUserRegistration()
+    this.metricsService.incrementSuccessfulLogin();
     return await this.generateTokenPair(savedUser);
   }
 
@@ -183,8 +193,10 @@ export class AuthService {
       const updateObj = { password: hashedPassword };
       await this.userRepository.update(userId, updateObj);
       return 'Password Changed Successfully';
-    }else {
-      throw new BadRequestException("You do not have any password set at the moment")
+    } else {
+      throw new BadRequestException(
+        'You do not have any password set at the moment',
+      );
     }
   }
 
@@ -206,11 +218,11 @@ export class AuthService {
     return `Verification email queued for ${email}`;
   }
 
-  async resendVerification(email:string){
-    const foundUser = await this.userRepository.findOne({where:{email}})
-    if(!foundUser) throw new NotFoundException()
-    const userId = foundUser.userId
-    return await this.sendEmailVerification(userId)
+  async resendVerification(email: string) {
+    const foundUser = await this.userRepository.findOne({ where: { email } });
+    if (!foundUser) throw new NotFoundException();
+    const userId = foundUser.userId;
+    return await this.sendEmailVerification(userId);
   }
 
   async verifyUser(userId: string) {

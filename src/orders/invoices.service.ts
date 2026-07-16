@@ -11,11 +11,13 @@ import * as PDFDocument from 'pdfkit';
 import { Buffer } from 'buffer';
 import * as path from 'path';
 import * as fs from 'fs';
+import { MetricsService } from 'src/metrics/metrics.service';
 
 @Injectable()
 export class InvoiceService {
   constructor(
     @InjectRepository(Orders) private ordersRepository: Repository<Orders>,
+    private metricsService: MetricsService
   ) {}
 
   async generateInvoice(orderId: string): Promise<Buffer | any> {
@@ -398,6 +400,7 @@ export class InvoiceService {
       });
     return new Promise<Buffer>((resolve, reject) => {
       doc.on('end', () => {
+        this.metricsService.incrementInvoiceDownload()
         resolve(Buffer.concat(buffers));
       });
 
