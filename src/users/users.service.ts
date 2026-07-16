@@ -16,6 +16,7 @@ import { Roles } from 'src/roles/dtos/enums/roles.enum';
 import { Address } from 'src/typeorm/entities/Addresses';
 import { AuthService } from 'src/auth/auth.service';
 import { QueuesService } from 'src/queues/queues.service';
+import { MetricsService } from 'src/metrics/metrics.service';
 
 @Injectable()
 export class UsersService {
@@ -24,6 +25,7 @@ export class UsersService {
     private readonly authService: AuthService,
     private readonly queueService: QueuesService,
     @InjectRepository(Address) private addressRepository: Repository<Address>,
+    private metricsService: MetricsService
   ) {}
 
   async createUser({ email, password, ...userData }: createUserInput) {
@@ -46,6 +48,7 @@ export class UsersService {
       to: email,
       firstName: userData.firstName,
     });
+    this.metricsService.incrementUserRegistration()
     await this.authService.sendEmailVerification(savedUser.userId);
     return savedUser;
   }
@@ -67,6 +70,7 @@ export class UsersService {
       createdAt: new Date(),
     });
     const savedUser = await this.userRepository.save(newUser);
+    this.metricsService.incrementUserRegistration()
     await this.queueService.addWelcomeEmailJob({
       to: email,
       firstName: userData.firstName,

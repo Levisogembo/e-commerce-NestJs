@@ -20,6 +20,7 @@ import { orderStatus } from './Dtos/status.enum';
 import { CouponService } from './coupon.service';
 import { generateOrderNumber } from 'src/utils/generateOrder';
 import { searchOrdersInput } from './Dtos/returnOrder.input';
+import { MetricsService } from 'src/metrics/metrics.service';
 
 @Injectable()
 export class OrdersService {
@@ -32,6 +33,7 @@ export class OrdersService {
     private orderItemsRepository: Repository<orderItems>,
     private couponService: CouponService,
     private queueService: QueuesService,
+    private metricsService: MetricsService
   ) {}
 
   async createOrder(userId: string, payload: createOrderInput) {
@@ -162,7 +164,7 @@ export class OrdersService {
       where: { orderId: savedOrder.orderId },
       relations: ['orderItems', 'orderItems.Product'],
     });
-
+    this.metricsService.incrementOrderCreated()
     return {
       ...completedOrder,
       message: 'Order created successfully and queued for processing',
@@ -267,7 +269,8 @@ export class OrdersService {
           this.logger.error(`Failed to redeem coupon: ${error.message}`);
         }
       }
-
+      this.metricsService.incrementCompletedOrder()
+      this.metricsService.incrementSuccessfulPayment()
       //send success email to the queue for processing
       await this.queueService.addEmailJobData({
         to: foundUser.email,
@@ -296,7 +299,7 @@ export class OrdersService {
     } else {
       //handle failed payments
       this.logger.warn(`Payment failed for order ${foundOrder.orderId}`);
-
+      this.metricsService.incrementFailedPayment()
       await this.orderRepository.manager.transaction(
         async (transactionManager) => {
           const releasedOrderItems = await transactionManager.find(orderItems, {
