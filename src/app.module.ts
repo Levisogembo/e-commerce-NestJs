@@ -29,6 +29,8 @@ import { Coupon } from './typeorm/entities/Coupon';
 import { CouponUsage } from './typeorm/entities/CouponUsage';
 import { AnalyticsModule } from './analytics/analytics.module';
 import { MetricsModule } from './metrics/metrics.module';
+import { APP_INTERCEPTOR } from '@nestjs/core';
+import { MetricsInterceptor } from './metrics/interceptors/metrics.interceptor';
 
 @Module({
   imports: [
@@ -69,6 +71,12 @@ import { MetricsModule } from './metrics/metrics.module';
     MetricsModule
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: MetricsInterceptor
+    }
+  ],
 })
 export class AppModule { }

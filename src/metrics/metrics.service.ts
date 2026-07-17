@@ -48,7 +48,7 @@ export class MetricsService implements OnModuleInit {
   readonly httpRequestDuration = new client.Histogram({
     name: 'elixir_http_request_duration_seconds',
     help: 'Duration of HTTP requests in seconds',
-    labelNames: ['method', 'route', 'statusCode'],
+    labelNames: ['method', 'route', 'operation', 'statusCode'],
     buckets: [
       0.005, // 5ms
       0.01, 
@@ -103,5 +103,9 @@ export class MetricsService implements OnModuleInit {
 
   incrementFailedPayment() {
     this.failedPayments.inc();
+  }
+
+  observeHttpRequest (method: string, route: string, operation = '' ,statusCode: number, duration: number) {
+    this.httpRequestDuration.labels(method, route, operation, statusCode.toString()).observe(duration)
   }
 }
