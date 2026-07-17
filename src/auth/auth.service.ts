@@ -36,7 +36,16 @@ export class AuthService {
     const foundUser = await this.userRepository.findOne({
       where: { email },
     });
-    if (!foundUser) throw new NotFoundException();
+    if (!foundUser) {
+      this.metricsService.incrementFailedLogin();
+      throw new NotFoundException("Credentials do not match");
+    }
+    if (!foundUser.password) {
+      this.metricsService.incrementFailedLogin();
+      throw new BadRequestException(
+        'You do not have any password, please login using google',
+      );
+    }
     const userPassword = foundUser.password as string;
     const passwordMatch = await argon.verify(userPassword, password);
     if (!passwordMatch) {
@@ -169,7 +178,7 @@ export class AuthService {
       to: email,
       firstName: profile.given_name,
     });
-    this.metricsService.incrementUserRegistration()
+    this.metricsService.incrementUserRegistration();
     this.metricsService.incrementSuccessfulLogin();
     return await this.generateTokenPair(savedUser);
   }
