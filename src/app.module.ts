@@ -31,6 +31,7 @@ import { AnalyticsModule } from './analytics/analytics.module';
 import { MetricsModule } from './metrics/metrics.module';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { MetricsInterceptor } from './metrics/interceptors/metrics.interceptor';
+import { SeedModule } from './seed/seed.module';
 
 @Module({
   imports: [
@@ -68,7 +69,8 @@ import { MetricsInterceptor } from './metrics/interceptors/metrics.interceptor';
     QueuesModule,
     MpesaModule,
     AnalyticsModule,
-    MetricsModule
+    MetricsModule,
+    SeedModule
   ],
   controllers: [AppController],
   providers: [
