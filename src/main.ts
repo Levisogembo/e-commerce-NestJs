@@ -23,7 +23,8 @@ async function bootstrap() {
   app.useStaticAssets(join(__dirname, '..', 'images'), {
     prefix: '/images'
   })
-  
-  await app.listen(3000).then(() => console.log('App is listening on port 3000'));
+  app.enableShutdownHooks() //enable gracefule shutdowns
+  await app.listen(configService.get<number>("PORT",3000))
+  console.log('App is listening on port 3000')
 }
 bootstrap();

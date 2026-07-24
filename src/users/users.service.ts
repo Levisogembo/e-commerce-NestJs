@@ -93,6 +93,11 @@ export class UsersService {
     };
   }
 
+  async findUserbyEmail (email:string){
+    const user = await this.userRepository.findOne({where:{email}})
+    return user
+  }
+
   async getAllUsers(page: number, limit: number) {
     const offset = (page - 1) * limit;
     const users = await this.userRepository.find({
