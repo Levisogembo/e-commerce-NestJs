@@ -25,7 +25,7 @@ export class UsersService {
     private readonly authService: AuthService,
     private readonly queueService: QueuesService,
     @InjectRepository(Address) private addressRepository: Repository<Address>,
-    private metricsService: MetricsService
+    private metricsService: MetricsService,
   ) {}
 
   async createUser({ email, password, ...userData }: createUserInput) {
@@ -48,12 +48,15 @@ export class UsersService {
       to: email,
       firstName: userData.firstName,
     });
-    this.metricsService.incrementUserRegistration()
+    this.metricsService.incrementUserRegistration();
     await this.authService.sendEmailVerification(savedUser.userId);
     return savedUser;
   }
 
-  async createAdmin({ email, password, ...userData }: createUserInput) {
+  async createAdmin(
+    { email, password, ...userData }: createUserInput,
+    isVerified?: string,
+  ) {
     const foundEmail = await this.userRepository.findOne({ where: { email } });
     if (foundEmail)
       throw new HttpException('Email already exists', HttpStatus.CONFLICT);
@@ -61,20 +64,32 @@ export class UsersService {
     if (password) {
       hashedPassword = await argon.hash(password);
     }
-
-    const newUser = await this.userRepository.create({
-      ...userData,
-      email,
-      role: Roles.ADMIN,
-      password: hashedPassword,
-      createdAt: new Date(),
-    });
+    let newUser;
+    if (isVerified) {
+      newUser = await this.userRepository.create({
+        ...userData,
+        email,
+        role: Roles.ADMIN,
+        password: hashedPassword,
+        isVerified: true,
+        createdAt: new Date(),
+      });
+      console.log('Admin account verified');
+    } else {
+      newUser = await this.userRepository.create({
+        ...userData,
+        email,
+        role: Roles.ADMIN,
+        password: hashedPassword,
+        createdAt: new Date(),
+      });
+      this.metricsService.incrementUserRegistration();
+      await this.queueService.addWelcomeEmailJob({
+        to: email,
+        firstName: userData.firstName,
+      });
+    }
     const savedUser = await this.userRepository.save(newUser);
-    this.metricsService.incrementUserRegistration()
-    await this.queueService.addWelcomeEmailJob({
-      to: email,
-      firstName: userData.firstName,
-    });
     return savedUser;
   }
 
@@ -93,9 +108,9 @@ export class UsersService {
     };
   }
 
-  async findUserbyEmail (email:string){
-    const user = await this.userRepository.findOne({where:{email}})
-    return user
+  async findUserbyEmail(email: string) {
+    const user = await this.userRepository.findOne({ where: { email } });
+    return user;
   }
 
   async getAllUsers(page: number, limit: number) {
@@ -124,7 +139,7 @@ export class UsersService {
         ([_, value]) => value !== undefined && value !== null && value !== '',
       ),
     );
-    
+
     await this.userRepository.update(userId, filteredObj);
     const user = await this.getOneUser(userId);
 

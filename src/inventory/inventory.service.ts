@@ -89,7 +89,7 @@ export class InventoryService {
             skip: offset,
             take: limit,
         })
-        if (!category.length) throw new NotFoundException('Category not found')
+        //if (!category.length) throw new NotFoundException('Category not found')
         await this.redisInventoryService.storeItem(cacheKey, JSON.stringify({ category, total }), 3600)
         return { category, total }
     }
