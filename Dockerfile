@@ -23,9 +23,11 @@ RUN npm ci --omit=dev
 
 COPY --from=builder /usr/src/app/dist ./dist
 COPY --from=builder /usr/src/app/nest-cli.json ./nest-cli.json
+COPY --from=builder /usr/src/app/images/ ./images/
+
 COPY entrypoint.sh .
 
 RUN chmod +x entrypoint.sh
 EXPOSE 3000
-ENTRYPOINT ["./entrypoint.sh"]
+ENTRYPOINT ["sh", "./entrypoint.sh"]
 CMD ["node", "dist/main.js"]

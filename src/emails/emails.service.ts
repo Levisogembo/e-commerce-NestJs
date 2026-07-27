@@ -8,25 +8,45 @@ import * as handlebars from 'handlebars';
 @Injectable()
 export class EmailsService {
   private transporter: nodemailer.Transporter;
-
+  //local dev compilation
+  // private compileTemplate(name: string, context: Record<string, any>): string {
+  //   const filePath = path.join(
+  //     process.cwd(),
+  //     'src',
+  //     'emails',
+  //     'templates',
+  //     `${name}.hbs`,
+  //   );
+  //   const source = fs.readFileSync(filePath, 'utf-8');
+  //   const template = handlebars.compile(source);
+  //   return template(context);
+  // }
+  //production compilation
   private compileTemplate(name: string, context: Record<string, any>): string {
-    const filePath = path.join(
-      process.cwd(),
-      'src',
-      'emails',
-      'templates',
-      `${name}.hbs`,
-    );
-    const source = fs.readFileSync(filePath, 'utf-8');
-    const template = handlebars.compile(source);
-    return template(context);
+    const filePath = path.join(__dirname, 'templates', `${name}.hbs`);
+
+    const source = fs.readFileSync(filePath, 'utf8');
+
+    return handlebars.compile(source)(context);
   }
+  //local dev logo
+  // private getLogoAttachment(): nodemailer.SendMailOptions['attachments'] {
+  //   return [
+  //     {
+  //       filename: 'cart.png',
+  //       path: path.join(process.cwd(), 'src', 'utils', 'logos', 'cart.png'),
+  //       cid: 'companyLogo',
+  //       contentDisposition: 'inline',
+  //       contentType: 'image/png',
+  //     },
+  //   ];
+  // }
 
   private getLogoAttachment(): nodemailer.SendMailOptions['attachments'] {
     return [
       {
         filename: 'cart.png',
-        path: path.join(process.cwd(), 'src', 'utils', 'logos', 'cart.png'),
+        path: path.join(__dirname, '..', 'utils', 'logos', 'cart.png'),
         cid: 'companyLogo',
         contentDisposition: 'inline',
         contentType: 'image/png',

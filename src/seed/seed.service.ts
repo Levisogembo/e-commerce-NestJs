@@ -38,7 +38,9 @@ export class SeedService implements OnModuleInit {
       lastName,
       firstName,
       phoneNumber,
-    });
+    },
+    "verified"
+  );
     console.log("Admin account created");    
   }
 }
