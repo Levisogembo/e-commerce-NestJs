@@ -43,8 +43,8 @@ import { SeedModule } from './seed/seed.module';
       inject: [ConfigService],
       useFactory: async (configService: ConfigService) => ({
         type: 'postgres',
-        port: configService.get<number>('DB_PORT'),
-        host: configService.get<string>('DB_HOST'),
+        port: configService.get<number>('DB_PORT',5432),
+        host: configService.get<string>('DB_HOST','db'),
         database: configService.get<string>('DB_NAME'),
         username: configService.get<string>('DB_USER'),
         password: configService.get<string>('DB_PASSWORD'),
