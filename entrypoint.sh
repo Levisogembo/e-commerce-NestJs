@@ -24,7 +24,7 @@ load_secret() {
 }
 
 # Database
-load_secret /run/secrets/postgres_user DB_USERNAME
+load_secret /run/secrets/postgres_user DB_USER
 load_secret /run/secrets/postgres_password DB_PASSWORD
 load_secret /run/secrets/postgres_db DB_NAME
 
