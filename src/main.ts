@@ -6,8 +6,8 @@ import { join } from 'path';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
-  app.setGlobalPrefix('api/v1')
-  const configService = app.get(ConfigService)
+  app.setGlobalPrefix('api/v1');
+  const configService = app.get(ConfigService);
   app.enableCors({
     origin: configService.get<string>('FRONTEND_URL', 'http://localhost:5173'),
     credentials: true,
@@ -15,16 +15,17 @@ async function bootstrap() {
     allowedHeaders: [
       'Content-Type',
       'Authorization',
-      'Apollo-Require-Preflight'
-    ]
-  })
+      'Apollo-Require-Preflight',
+    ],
+  });
 
   //serve static images to frontend to display product images
   app.useStaticAssets(join(__dirname, '..', 'images'), {
-    prefix: '/images'
-  })
-  app.enableShutdownHooks() //enable gracefule shutdowns
-  await app.listen(configService.get<number>("PORT",3000))
-  console.log('App is listening on port 3000')
+    prefix: '/images',
+  });
+  app.enableShutdownHooks(); //enable gracefule shutdowns
+  const port = configService.get<number>('PORT', 3000);
+  await app.listen(port, '0.0.0.0');
+  console.log(`Application is listening on port ${port}`);
 }
 bootstrap();
