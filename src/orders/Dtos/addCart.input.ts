@@ -25,4 +25,8 @@ export class addToCartDto {
     @IsOptional()
     @IsString()
     fileName?: string
+
+    @IsOptional()
+    @IsString()
+    filepath?: string
 }
