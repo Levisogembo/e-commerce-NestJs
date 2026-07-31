@@ -20,6 +20,9 @@ export class CartItem {
 
   @Field()
   fileName?: string
+
+  @Field()
+  filepath?: string
 }
 
 @Entity()
