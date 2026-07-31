@@ -234,7 +234,7 @@ type Query {
   getOneSubCategory(subCategoryId: String!): subCategory!
   getOneProduct(productId: String!): Product!
   getManyProducts(page: Int!, limit: Int!, searchOptions: searchOptionsInput): PaginatedProducts!
-  getAllOrders(page: Int!, limit: Int!, searchOptions: searchOrdersInput!): paginatedOrders!
+  getAllOrders(page: Int!, limit: Int!, searchOptions: searchOrdersInput!): paginatedOrders! 
 }
 
 input searchOptionsInput {
