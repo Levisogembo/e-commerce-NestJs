@@ -1,10 +1,25 @@
 services:
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: elixir-nginx
+    restart: unless-stopped
+    depends_on:
+      e-commerce:
+        condition: service_healthy
+    expose:
+      - "80"
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+    networks:
+      - backend
+      - edge
+
   redis:
     image: redis:7-alpine
     container_name: redis
     restart: unless-stopped
     ports:
-      - '6379:6379'
+      - "6379:6379"
     networks:
       - backend
     volumes:
@@ -17,7 +32,7 @@ services:
     container_name: ecommerce-api
     restart: unless-stopped
     ports:
-      - '3000:3000'
+      - "3000:3000"
     env_file:
       - .env
     depends_on:
@@ -25,6 +40,18 @@ services:
         condition: service_healthy
       redis:
         condition: service_started
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://localhost:3000/api/v1/health').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
     volumes:
       - ./secrets/postgres_user:/run/secrets/postgres_user:ro
       - ./secrets/postgres_password:/run/secrets/postgres_password:ro
@@ -38,7 +65,7 @@ services:
     container_name: postgres
     restart: unless-stopped
     ports:
-      - '5432:5432'
+      - "5432:5432"
     environment:
       POSTGRES_USER_FILE: /run/secrets/postgres_user
       POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
@@ -50,7 +77,7 @@ services:
       - ./secrets/postgres_password:/run/secrets/postgres_password:ro
       - ./secrets/postgres_db:/run/secrets/postgres_db:ro
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U $$(cat /run/secrets/postgres_user)']
+      test: ["CMD-SHELL", "pg_isready -U $$(cat /run/secrets/postgres_user)"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -62,14 +89,14 @@ services:
     container_name: prometheus
     restart: unless-stopped
     ports:
-      - '9090:9090'
+      - "9090:9090"
     volumes:
       - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - prometheus_data:/prometheus
     command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--storage.tsdb.path=/prometheus'
-      - '--web.enable-lifecycle'
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--web.enable-lifecycle"
     depends_on:
       - e-commerce
     networks:
@@ -80,7 +107,7 @@ services:
     container_name: grafana
     restart: unless-stopped
     ports:
-      - '3002:3000'
+      - "3002:3000"
     depends_on:
       - prometheus
     volumes:
@@ -95,23 +122,25 @@ services:
     networks:
       - backend
 
-  frontend-app:
-    build:
-      context: ../../../react-ecommerce
-      dockerfile: Dockerfile
-    image: react-ecommerce
-    container_name: react-frontend
-    restart: unless-stopped
-    ports:
-      - "80:80"
-    depends_on:
-      - e-commerce
-    networks:
-      - frontend
+  # frontend-app:
+  # build:
+  #   context: ../../../react-ecommerce
+  #   dockerfile: Dockerfile
+  # image: react-ecommerce
+  # container_name: react-frontend
+  # restart: unless-stopped
+  # ports:
+  #   - "80:80"
+  # depends_on:
+  #   - e-commerce
+  # networks:
+  #   - frontend
 
 networks:
   backend:
     driver: bridge
+  edge:
+    external: true
   frontend:
     driver: bridge
 

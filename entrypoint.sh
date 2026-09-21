@@ -10,7 +10,7 @@ load_secret() {
     ENV_NAME="$2"
 
     if [ -f "$SECRET_FILE" ]; then
-        VALUE=$(cat "$SECRET_FILE")
+        VALUE=$(cat "$SECRET_FILE" | tr -d '\r\n')
         export "$ENV_NAME=$VALUE"
         echo "Loaded $ENV_NAME from Docker secret."
     else
@@ -28,15 +28,8 @@ load_secret /run/secrets/postgres_user DB_USER
 load_secret /run/secrets/postgres_password DB_PASSWORD
 load_secret /run/secrets/postgres_db DB_NAME
 
-# Redis
-if [ -z "$REDIS_HOST" ]; then
-    export REDIS_HOST=redis
-fi
-
-if [ -z "$REDIS_PORT" ]; then
-    export REDIS_PORT=6379
-fi
-
+echo "Loaded $ENV_NAME from Docker secret."
+echo "Loaded $ENV_NAME from environment."
 echo "Configuration loaded successfully."
 
 exec "$@"

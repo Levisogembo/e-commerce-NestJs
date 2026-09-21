@@ -9,6 +9,8 @@ RUN npm ci
 COPY . .
 
 RUN npm run build
+RUN cp -r src/emails/templates/. dist/emails/templates
+RUN cp -r src/utils/. dist/utils
 
 ##Production env
 FROM  node:22 AS runner
